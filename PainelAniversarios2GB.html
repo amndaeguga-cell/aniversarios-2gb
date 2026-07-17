@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2ºGB — Painel de Aniversários</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #F4F4F2; }
+  * { box-sizing: border-box; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+const MILITARES_RAW =
+[
+  ["JOSÉ HENRIQUE ARRUDA DANTAS","TEN CEL QOC","1976-10-30","SEDE","Cmd","970007-2"],
+  ["ANDRÉ PEREIRA DA SILVA","Maj QOC","1984-12-31","SEDE","SubCmd","707445-0"],
+  ["LUCIVÂNIO DAVID LOPES","Cap QOA","1980-02-01","SEDE","6ªSB; Tes (SAC, NAS)","707074-8"],
+  ["ERIK HENRIQUE CLEMENTE DE ALMEIDA","2º Ten QOC","1991-04-12","SEDE","2ªSB","722205-0"],
+  ["HELMITON VALDEMAR DA SILVA FILHO","2º Ten QOC","1992-12-23","SEDE","3ªSB; SICT","722213-0"],
+  ["JOSÉ ANDERSON TORRES BEZERRA","2º Ten QOC","1990-11-25","SEDE","5ªSB","723001-0"],
+  ["KELVIN RUDAH SILVA DA VEIGA","2º Ten QOC","1992-05-27","SEDE","1ªSB","723009-5"],
+  ["PEDRO RUFINO DE MENEZES NETO","2º Ten QOC","1989-10-16","SEDE","4ªSB","723014-1"],
+  ["DANILO JANUÁRIO SILVA","2º Ten QOC","1990-10-09","SEDE","6ªSB","723015-0"],
+  ["JÉSSICA BEATRIZ DE VASCONCELOS EGITO ALVES","2º Ten QOC","1995-07-22","SEDE","7ªSB","718099-3"],
+  ["NAZARENO FELIPE DA SILVA","2º Ten QOA","1974-09-11","SEDE","DA (SP); STSGT (SMO)","798245-3"],
+  ["MARCEL EMANUEL TARGINO COUTO DA SILVA","2º Ten QOC","1989-10-26","SEDE","STC","718075-6"],
+  ["AMANDA DE ARAUJO CARVALHO","ASP BM","1996-05-14",null,null,"726008-3"],
+  ["DANILO CÉSAR BEZERRA PEREIRA","ASP BM","1991-03-10",null,null,"726014-8"],
+  ["ITALO CAVALCANTI CORREIA","ASP BM","1996-07-07",null,null,"726015-6"],
+  ["ADRIANO RENATO MENDES DA SILVA","SubTen","1976-09-23","1ªSB","Aux. 1ªSB","798045-0"],
+  ["DÁRIO FRANCISCO BISERRA","SubTen","1975-11-28","1ªSB","Adjunto","798085-0"],
+  ["JULIO CEZAR BARRETO FALCÃO","SubTen","1979-07-27","4ªSB","Adjunto","704089-0"],
+  ["JOSÉ ADELSON DE BARROS","SubTen","1979-05-10","1ªSB","adjunto","707170-1"],
+  ["JONATAS DUQUE DOS SANTOS","SubTen","1986-06-22","SCSv","Aux. 1ªSB","707068-3"],
+  ["RANIERE DE FRANÇA LIMA","SubTen","1988-06-28","SCSv","Aux Almox","707009-8"],
+  ["CARLOS HENRIQUE FERNANDES DOS SANTOS","1º Sgt","1986-05-09","4ªSB","Combatente","707334-8"],
+  ["RUI GESSÉ BELARMINO TEIXEIRA","1º Sgt","1968-10-08","1ªSB","Motorista","910230-2"],
+  ["FRANCISCO QUIRINO DA SILVA FILHO","1º Sgt","1972-07-15","3ªSB","Combatente","940489-9"],
+  ["JOSÉ FERREIRA DE OLIVEIRA JÚNIOR","1º Sgt","1971-05-29","4ªSB","Motorista","920582-9"],
+  ["GUTIERRES OLIVEIRA DO NASCIMENTO","1º Sgt","1971-09-09","2ªSB","Socorrista","930539-4"],
+  ["LUCIANO C. PONTES DE ALBUQUERQUE","1º Sgt","1975-04-24","2ªSB","Motorista","798207-0"],
+  ["JAMES BEZERRA DE MOURA","1º Sgt","1978-01-07","SCSv","Aux. SCP","798161-9"],
+  ["WINSTON SANTOS TINÉ","1º Sgt","1975-10-30","3ªSB","Motorista","798316-6"],
+  ["SILVÉRIO CAVALCANTI DE MELO","1º Sgt","1972-05-07","SCSv","Aux. DvOp","798281-0"],
+  ["WELLINGTON MARCOS DA SILVA MELO","2º Sgt","1973-11-27","3ªSB","Socorrista","798306-9"],
+  ["JOSÉ PAULO TORRES","2º Sgt","1973-10-04","2ªSB","Socorrista","798188-0"],
+  ["MELQUISEDEC  CAETANO DE MENEZES","2º Sgt","1973-10-06","4ªSB","Motorista","798237-2"],
+  ["MARCELO JOSÉ DA SILVA","2º Sgt","1974-11-03","1ªSB","Combatente","798223-2"],
+  ["JOSÉ LIVALDO BARBOSA LEÃO","2º Sgt","1976-09-05","2ªSB","Motorista","798154-6"],
+  ["JOSÉ HUMBERTO LUNA BRAGA DE MELO","2º Sgt","1983-01-16","7ªSB","MERGULHADOR","707233-3"],
+  ["JOSÉ GIVANILSON COSTA TORRES","2º Sgt","1970-03-27","1ªSB","Combatente","940672-7"],
+  ["ÍCARO LIRA POVOAS","2º Sgt","1986-03-03","1ªSB","Combatente","707141-8"],
+  ["JUAN QUARESMA ADELINO DA SILVA","2º Sgt","1982-05-21","7ªSB","MERGULHADOR","707395-0"],
+  ["ANDERSON TULIO JOSÉ DA MOTA TOMAZ","2º Sgt","1987-05-08","1ªSB","Combatente","707339-9"],
+  ["VAGNER CLAYTON DA SILVA","2º Sgt","1981-03-24","SCSv","AUX. DA","707245-7"],
+  ["ANDERSON CARLOS PEREIRA LEITE","2º Sgt","1987-02-12","1ªSB","Combatente","707331-3"],
+  ["ÊNIO RODRIGO VASCONCELOS DE CARVALHO","2º Sgt","1981-10-07","5ªSB","Combatente","707012-8"],
+  ["MAGNUM RODRIGO SILVA","2º Sgt","1984-10-05","5ªSB","Combatente","707326-7"],
+  ["THIAGO FIDELES DE SOUSA FELICIANO","2º Sgt","1988-02-06","6ªSB","Socorrista","707264-3"],
+  ["HENRIQUE CURSINO DOS SANTOS","3º Sgt","1985-07-15","6ªSB","Motorista","707188-4"],
+  ["MARCELO DOS SANTOS FONSECA","3º Sgt","1982-11-10","7ªSB","MERGULHADOR","707102-7"],
+  ["JERRY ANDERSON BEZERRA CAVALCANTI","3º Sgt","1980-06-19","1ªSB","Combatente","707376-3"],
+  ["SÉRGIO RICARDO DA COSTA CABRAL","3º Sgt","1978-03-10","2ªSB","Combatente","707077-2"],
+  ["LUIZ NUNES DA SILVA JUNIOR","3º Sgt","1979-06-16","SCSv","Aux. STC","710138-4"],
+  ["RAFAEL BARBOSA ROCHA","3º Sgt","1984-12-28","SCSv","aux. SMO","710150-3"],
+  ["ALYSON JEFERSON FARIAS DE LUCENA","3º Sgt","1981-11-26","7ªSB","MERGULHADOR","710266-6"],
+  ["CLEMENSON DA SILVA MARQUEZIN","3º Sgt","1984-12-17","7ªSB","MERGULHADOR","710012-4"],
+  ["WANESSA BORGES MACEDO","3º Sgt","1989-03-31","1ªSB","Socorrista","710072-8"],
+  ["IZAIAS JOSÉ BENVENUTO GONÇALVES","3º Sgt","1981-08-31","1ªSB","Socorrista","710181-3"],
+  ["JOYCE MANUELLA DA SILVA FARIAS","3º Sgt","1983-02-15","SCSv","Aux. 1ªSB","710419-7"],
+  ["SIDRAILDO SEVERINO DOS SANTOS","3º Sgt","1979-12-23","SCSv","Aux. STC","710093-0"],
+  ["MATEUS PEREIRA TENORIO","3º Sgt","1981-10-16","1ªSB","Combatente","710146-5"],
+  ["ADEILDO JOSÉ DE ANDRADE","3º Sgt","1984-08-20","1ªSB","Motorista","710059-0"],
+  ["ODEVALDO DE BARROS SOBRAL","3º Sgt","1982-03-15","3ªSB","Motorista","710336-0"],
+  ["JOÃO LUIZ DE MAGALHÃES JÚNIOR","3º Sgt","1979-12-27","3ªSB","Socorrista","710200-3"],
+  ["PAULO ANDRÉ XAVIER LEITE DA SILVA","3º Sgt","1985-04-05","1ªSB",null,"710225-9"],
+  ["JEFFERSON FRANCISCO DOS SANTOS AIRES","3º Sgt","1982-11-27","2ªSB","Combatente","710324-7"],
+  ["JOSE FERNANDO HENRIQUE DE LUCENA","3º Sgt","1980-08-30","3ªSB","Socorrista","710398-0"],
+  ["WAMBERTO REIS DA SILVA","3º Sgt","1986-07-11","3ªSB","Motorista","710227-5"],
+  ["GENILSON BARROS DE SOUZA","3º Sgt","1985-06-03","1ªSB","TELEFONISTA","710182-1"],
+  ["FLÁVIO ROBERTO DA SILVA PEREIRA","3º Sgt","1980-05-27","5ªSB","Socorrista","710204-6"],
+  ["RODRIGO APOLÔNIO DE LIMA","3º Sgt","1979-03-31","3ªSB","Socorrista","710083-3"],
+  ["LUCIANO JOSÉ DA SILVA","3º Sgt","1980-11-27","2ªSB","Combatente","710315-8"],
+  ["EDSON FERREIRA DA SILVA JUNIOR","3º Sgt","1977-01-05","2ªSB","Combatente","710420-0"],
+  ["DANIEL FERREIRA DA SILVA","3º Sgt","1979-04-11","6ªSB","Combatente","710228-3"],
+  ["JOSÉ ROBERVALTER DOS SANTOS SILVA","3º Sgt","1981-02-27","1ªSB","TELEFONISTA","711149-5"],
+  ["JOSÉ ROSEMBERGUE DOS SANTOS","3º Sgt","1978-06-01","SCSv","Combatente","710192-9"],
+  ["ANDERSON HENRIQUE TEIXEIRA DE MOURA","3º Sgt","1987-08-27","2ªSB","Motorista","711281-5"],
+  ["DOUGLAS CURSINO DE ARAÚJO SILVA","3º Sgt","1979-11-16","6ªSB","Combatente","711145-2"],
+  ["EMERSON DAYVID FÉLIX RAMOS","3º Sgt","1984-04-27","2ªSB","Motorista","711117-7"],
+  ["PAUL ANDERSON DE MORAIS ARAÚJO","3º Sgt","1984-11-13","5ªSB","Combatente","711026-0"],
+  ["BRUNO HERBERT PEREIRA DE MELO","3º Sgt","1980-11-23","1ªSB","Combatente","711071-5"],
+  ["FÁBIO DA SILVA SALES","3º Sgt","1986-07-07","7ªSB","MERGULHADOR","711036-7"],
+  ["JOSÉ RAFAEL DA SILVA","3º Sgt","1989-01-05","7ªSB","MERGULHADOR","711100-2"],
+  ["RODRIGO MATIAS JOSE DA SILVA","3º Sgt","1988-03-20","7ªSB","MERGULHADOR","711157-6"],
+  ["ADRIANO RICELLI GOMES DOS SANTOS","3º Sgt","1978-08-20","3ªSB","Socorrista","711364-1"],
+  ["JÚLIO MARIA DE ARAÚJO NETTO","3º Sgt","1983-12-03","1ªSB","Motorista","711011-1"],
+  ["MARCOS FERNANDO DA SILVA","3º Sgt","1979-12-01","4ªSB","Combatente","711317-0"],
+  ["ROBERTO VAGNER SANTOS DA SILVA","3º Sgt","1982-11-19","1ªSB","Motorista","711334-0"],
+  ["ANDERSON FRANCISCO DA SILVA","3º Sgt","1985-10-08","1ªSB","Combatente","711327-7"],
+  ["ANDERSON AUGUSTO DE FIGUEIREDO SILVA","3º Sgt","1986-06-24","1ªSB","Combatente","711280-7"],
+  ["JOSÉ FÁBIO DE SOUSA","Cb","1982-12-30","SCSv","READAPTADO","711266-1"],
+  ["GLAUCIO VIEIRA TORRES NETO","Cb","1986-07-11","3ªSB","Combatente","711040-5"],
+  ["JEANNE FRACINETE DOS SANTOS","Cb","1985-06-16","2ªSB","Combatente","711330-7"],
+  ["ADRIANO FERREIRA DE SOUZA","Cb","1977-06-04","4ªSB","Motorista","711113-4"],
+  ["JOSÉ SIDCLEIBSON ALVES DOS SANTOS","Cb","1986-06-08","6ªSB","Combatente","711283-1"],
+  ["NATANAEL JACINTO PEREIRA","Cb","1979-06-21","4ªSB","Motorista","711059-6"],
+  ["JOSÉ ERALDO CORDEIRO DUARTE","Cb","1983-09-22","4ªSB","Combatente","711138-0"],
+  ["FLÁVIO FERNANDES DA SILVA","Cb","1990-09-17","SCSv","Aux. DA","718023-3"],
+  ["ALANDERSON LEON GOMES DE FREITAS TORRES","Cb","1992-08-12","6ªSB","Combatente","718041-1"],
+  ["ANIELE RENATA GOMES FERREIRA","Cb","1990-07-31","2ªSB",null,"718050-0"],
+  ["THAIRONE CARVALHO DA SILVA","Cb","1993-02-28","2ªSB","Combatente","718054-3"],
+  ["TASSIO FERREIRA SILVA","Cb","1990-09-14","SCSv","Aux. SCP","718072-1"],
+  ["ALLANO GUSTAVO MONTEIRO SANTOS JÚNIOR","Cb","1994-02-15","5ªSB","TELEFONISTA","718073-0"],
+  ["TÁRCIO MAURÍCIO CAVALCANTE DE ANDRADE","Cb","1993-01-17","4ªSB","Combatente","718076-4"],
+  ["SIVONALDO CRISTOVÃO DA SILVA","Cb","1988-05-26","4ªSB","Combatente","718079-9"],
+  ["THIAGO GABRIEL BARBOSA DE MENEZES PEREIRA","Cb","1992-08-14","6ªSB","Combatente","718083-7"],
+  ["INALDO DE OLIVEIRA LEITE JÚNIOR","Cb","1995-12-13","SCSv","ADIDO POR ESTÁ FREQUENTANDO CFO PMPE","718112-4"],
+  ["JONATHA BATISTA DA SILVA","Cb","1994-12-25","SCSv","Aux. SCP","718113-2"],
+  ["ALLAN KARDEC PEREIRA SANTOS","Cb","1995-01-30","5ªSB","Combatente","718114-0"],
+  ["FELIPE WALLACE DE SOUSA MACHADO","Cb","1991-09-24","5ªSB","Combatente","718116-7"],
+  ["LINDBERG DOS SANTOS LIMA","Cb","1991-01-06","1ªSB","Combatente","718119-1"],
+  ["JOSÉ CLÁUDIO ARAÚJO DA SILVA JUNIOR","Cb","1993-11-16","4ªSB","Combatente","718133-7"],
+  ["JOSÉ HUMBERTO PEREIRA","Cb","1992-01-04","2ªSB","Combatente","718149-3"],
+  ["MAILSON DA MOTA MONTEIRO","Cb","1988-05-11","6ªSB","Combatente","718150-7"],
+  ["SILAS ITALO LUNA","Cb","1992-08-28","4ªSB","Combatente","718168-0"],
+  ["JOSEANE CRISLAYNE DA SILVA BEZERRA","Cb","1990-03-24","1ªSB","Combatente","718176-0"],
+  ["ÍTALO FELIPE TORRES BARBOSA","Cb","1990-03-14","3ªSB","Combatente","718215-5"],
+  ["ALLISON MATHEUS GONÇALVES DE MÉLO","Cb","1997-10-07","SCSv","Aux. DvOp","718244-9"],
+  ["GERALDO JÚNIOR DOS SANTOS TEIXEIRA","Cb","1999-07-01","1ªSB","Aux. STC","718267-8"],
+  ["DANIEL MELO DE SOUZA BELO","Cb","1990-02-05","5ªSB","Combatente","718280-5"],
+  ["JONATAN PACHECO DA SILVA","Cb","1997-12-30","3ªSB","Combatente","718275-9"],
+  ["AUGUSTO HEITOR TABOSA PEREIRA","Sd","1992-03-03","2ªSB","Combatente","722002-2"],
+  ["HIAGO ALVES OLIVEIRA","Sd","1992-05-15","5ªSB","Combatente","722004-9"],
+  ["CÍCERO ALAN DE FREITAS","Sd","1989-01-15","3ªSB","Combatente","722009-0"],
+  ["LUCAS SANTOS DE VASCONCELOS","Sd","1990-03-20","3ªSB","Combatente","722012-0"],
+  ["ANAILSON CÉSAR SOBRAL DE OLIVEIRA LEITE","Sd","1995-01-23","2ªSB","Combatente","722013-8"],
+  ["ITALO CESAR GOMES DE MOURA","Sd","1996-12-06","2ªSB","Combatente","722024-3"],
+  ["DANIEL SÁ BARRETO DE MIRANDA","Sd","1997-09-12","7ªSB","MERGULHADOR","722029-4"],
+  ["ANDRÉ DAYVISON LEMOS DA SILVA","Sd","1988-07-11","2ªSB","combatente","722035-9"],
+  ["ABIMAEL DE OLIVEIRA SANTOS NETO","Sd","1992-11-15","5ªSB","Combatente","722038-3"],
+  ["THIAGO FILIPE DE SOUZA LIMA","Sd","1990-11-03","1ªSB","Combatente","722039-1"],
+  ["IGOR ROLEMBERG SILVA AMARAL","Sd","1992-04-27","6ªSB","Combatente","722044-8"],
+  ["HÉDER DA SILVA ESCOBAR","Sd","1993-12-25","6ªSB","Combatente","722050-2"],
+  ["DIEGO DIONES CABRAL","Sd","1989-11-08","6ªSB","Combatente","722064-2"],
+  ["DAIVSON SILVA DO NASCIMENTO","Sd","1988-02-22","7ªSB","MERGULHADOR","722065-0"],
+  ["ALINE LÚCIA TENÓRIO DA SILVA","Sd","1989-12-20","5ªSB","Combatente","722069-3"],
+  ["ALEX VANILSON DA SILVA SANTOS","Sd","1993-10-12","2ªSB","Combatente","722088-0"],
+  ["IGOR NATHAN DO NASCIMENTO SANTOS","Sd","1999-03-20","4ªSB","Combatente","722102-9"],
+  ["JAANDERSON ALVES FLORÊNCIO","Sd","1999-07-21","6ªSB","Combatente","722107-0"],
+  ["ARLESON KENNEDI FRANÇA DOS SANTOS","Sd","1993-11-22","6ªSB","SOCORRISTA","722108-8"],
+  ["NILSON RODRIGUES TAVARES JÚNIOR","Sd","1990-06-04","1ªSB","SOCORRISTA","722119-3"],
+  ["JOSÉ ISLAN DA SILVA","Sd","1996-05-20","1ªSB","SOCORRISTA","722123-1"],
+  ["ELENILDO FLORÊNCIO FREITAS","Sd","1996-05-20","6ªSB","SOCORRISTA","722125-8"],
+  ["YUSSAFI OSEITON SILVA BARRETO","Sd","1990-05-14","3ªSB","SOCORRISTA","722127-4"],
+  ["ALAN NASCIMENTO BARROS PEREIRA","Sd","1996-07-01","6ªSB","SOCORRISTA","722128-2"],
+  ["BRUNO OLIVEIRA SILVA DE MELO","Sd","1993-05-06","7ªSB","MERGULHADOR","722150-9"],
+  ["ARTHUR ALVES FERREIRA DA SILVA","Sd","1993-09-01","4ªSB","SOCORRISTA","722183-5"],
+  ["LYERTON IURY DA SILVA MORAIS","Sd","1995-05-30","5ªSB","SOCORRISTA","722189-4"],
+  ["JOSÉ MATHEUS FERREIRA DA SILVA","Sd","2004-05-23","1ªSB","SOCORRISTA","725001-0"],
+  ["RAYNER CARDOSO DE ARAÚJO","Sd","1995-09-22","3ªSB","SOCORRISTA","725005-3"],
+  ["NATÁLIA TAMIRES DE OLIVEIRA AMORIM","Sd","2005-03-28","2ªSB","SOCORRISTA","725012-6"],
+  ["RAFAEL SEVERINO OLIVEIRA DE MOURA","Sd","2000-09-02","6ªSB","SOCORRISTA","725014-2"],
+  ["DANIEL LEITE ALENCAR BEZERRA","Sd","2005-01-13","5ªSB","SOCORRISTA","725015-0"],
+  ["DANIEL GOMES ADELINO","Sd","2004-07-19","6ªSB","SOCORRISTA","725016-9"],
+  ["MARIA EDUARDA DA SILVA SOUZA","Sd","2001-05-26","1ªSB","SOCORRISTA","725019-3"],
+  ["ARTUR RODRIGUES ALMEIDA","Sd","1997-01-28","6ªSB","SOCORRISTA","725020-7"],
+  ["YURI FERNANDO MOTA DA SILVA","Sd","2002-10-18","4ªSB","SOCORRISTA","725022-3"],
+  ["LUCAS CLEITHON NASCIMENTO CHAVES","Sd","1996-02-28","6ªSB","Combatente","725023-1"],
+  ["IVAN PEDRO LUDGERO TORRES","Sd","1999-10-25","1ªSB","Combatente","725025-8"],
+  ["FRANCISCO DE PAULA RIBEIRO JUNIOR","Sd","2001-02-28","1ªSB","Combatente","725027-4"],
+  ["CLOVISSON FREIRE NOGUEIRA VIDAL","Sd","2004-03-17","5ªSB","Combatente","725028-2"],
+  ["LUAN EUSTÁQUIO LOPES DE FARIAS","Sd","2003-04-26","3ªSB","Combatente","725030-4"],
+  ["GUILHERME ADELINO DE MELO SILVA","Sd","1999-05-26","1ªSB","Combatente","725031-2"],
+  ["CARLOS JOSÉ DE LIMA","Sd","1997-01-31","3ªSB","Combatente","725032-0"],
+  ["CARLOS ANDRÉ PEREIRA GALDINO","Sd","2025-08-18","3ªSB","Combatente","725034-7"],
+  ["ARIAN FERREIRA ALVES PONTES","Sd","1999-02-19","3ªSB","Combatente","725037-1"],
+  ["PEDRO PEIXOTO MAGALHÃES PADILHA","Sd","2004-12-15","3ªSB","Combatente","725038-0"],
+  ["LAYANNE MOTA CINTRA DE ALBUQUERQUE","Sd","1996-10-10","1ªSB","Combatente","725040-1"],
+  ["MARIA ELOISA MATIAS LEAL","Sd","2005-05-25","1ªSB","Combatente","725041-0"],
+  ["IGOR MANOEL DA SILVA","Sd","1997-06-18","5ªSB","Combatente","725044-4"],
+  ["ITALO MATHEUS NUNES SOARES","Sd","1997-02-28","3ªSB","Combatente","725046-0"],
+  ["GABRIEL GOMES MESQUITA PINTO","Sd","2004-11-08","1ªSB","Combatente","725056-8"],
+  ["IRIS MENEZES CAVALCANTI SILVA","Sd","1998-10-16","SCSv","Aux Almox (GRAVIDA)","725073-8"],
+  ["DIEGO ARMANDO DA SILVA","Sd","1993-01-01","1ªSB","Combatente","725099-1"],
+  ["GABRIEL WILLIAN BEZERRA DA SILVA LEMOS","Sd","2006-05-02","1ªSB","Combatente","725105-0"],
+  ["JOSIVALDO THOMAZ DE AQUINO NASCIMENTO","Sd","1998-03-19","SCSv","Aux. STC","725119-0"],
+  ["MELKZEDEC JORDÃO CLAUDINO","Sd","2002-06-25","1ªSB","Combatente","725123-8"],
+  ["FELIPE HENRIQUE LEITE BARROS","Sd","1999-08-26","SCSv","Aux. STC","725129-7"],
+  ["BRENDA FERNANDA CORDEIRO SILVA","Sd","1999-05-27","1ªSB","Combatente","725173-4"],
+  ["MARILIA EDUARDA ALVES DA SILVA","Sd","1993-09-04","1ªSB","Combatente","725180-7"]
+];
+
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function parseData(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return { y, m, d };
+}
+
+function ordinalIdade(idade) {
+  return idade + (idade === 1 ? " ano" : " anos");
+}
+
+const MILITARES = MILITARES_RAW.map(([nome, posto, nascimento, lotacao, funcao, matricula]) => {
+  const { y, m, d } = parseData(nascimento);
+  return { nome, posto, nascimento, lotacao, funcao, matricula, nascY: y, nascM: m, nascD: d };
+});
+
+function diasAteAniversario(nascM, nascD, hoje) {
+  const anoAtual = hoje.getFullYear();
+  let prox = new Date(anoAtual, nascM - 1, nascD);
+  prox.setHours(0, 0, 0, 0);
+  const hojeZero = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  if (prox < hojeZero) {
+    prox = new Date(anoAtual + 1, nascM - 1, nascD);
+  }
+  const diffMs = prox - hojeZero;
+  return Math.round(diffMs / 86400000);
+}
+
+function nomeCaixaMista(nomeCompleto) {
+  return nomeCompleto
+    .split(" ")
+    .map((w) => {
+      const minus = ["da", "de", "do", "das", "dos", "e"];
+      const lw = w.toLowerCase();
+      if (minus.includes(lw)) return lw;
+      return lw.charAt(0).toUpperCase() + lw.slice(1);
+    })
+    .join(" ");
+}
+
+function textoFelicitacao(m, idade) {
+  return `Parabéns, ${m.posto} ${nomeCaixaMista(m.nome)}! 🎉\n\nEm nome do 2º Grupamento de Bombeiros, desejamos a você um feliz aniversário! Que este novo ciclo de ${ordinalIdade(idade)} seja repleto de saúde, conquistas e muito orgulho em servir com a farda que veste.\n\nParabéns, guerreiro(a)! 🚒❤️`;
+}
+
+function textoPostagem(m, idade) {
+  return `🎂 ANIVERSARIANTE DO DIA 🎂\n\n${m.posto} ${nomeCaixaMista(m.nome)}\n${m.lotacao ? `Lotação: ${m.lotacao}` : ""}\n\nO 2º Grupamento de Bombeiros parabeniza o(a) militar pelo seu aniversário! Muita saúde, paz e sucesso!\n\n#CBMPE #2ºGB #BombeirosPE`;
+}
+
+function copiarTexto(text, onDone) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(onDone).catch(() => fallbackCopy(text, onDone));
+  } else {
+    fallbackCopy(text, onDone);
+  }
+}
+function fallbackCopy(text, onDone) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  onDone();
+}
+
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => copiarTexto(text, () => { setCopied(true); setTimeout(() => setCopied(false), 1800); })}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        background: copied ? "#2E7D32" : "#1F3864",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        padding: "6px 12px",
+        fontSize: 13,
+        fontWeight: 600,
+        cursor: "pointer",
+      }}
+    >
+      {copied ? "✓ Copiado!" : "⧉ Copiar texto"}
+    </button>
+  );
+}
+
+function CardAniversariante({ m, idade, destaque }) {
+  const [aberto, setAberto] = useState(false);
+  return (
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 10,
+        border: `1px solid ${destaque ? "#C0621B" : "#E3E3E3"}`,
+        borderLeft: `5px solid ${destaque ? "#C0621B" : "#7B241C"}`,
+        padding: "14px 16px",
+        marginBottom: 10,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#1F3864" }}>
+            {m.posto} {nomeCaixaMista(m.nome)}
+          </div>
+          <div style={{ fontSize: 13, color: "#666", marginTop: 2 }}>
+            {m.lotacao || "—"} {m.funcao ? `· ${m.funcao}` : ""} · completa {ordinalIdade(idade)}
+          </div>
+        </div>
+        <button
+          onClick={() => setAberto((v) => !v)}
+          style={{
+            background: "transparent",
+            border: "1px solid #ccc",
+            borderRadius: 6,
+            padding: "5px 8px",
+            cursor: "pointer",
+            fontSize: 12,
+            color: "#333",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Gerar textos {aberto ? "▲" : "▼"}
+        </button>
+      </div>
+      {aberto && (
+        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#7B241C", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Mensagem de felicitação
+            </div>
+            <div style={{ fontSize: 12.5, whiteSpace: "pre-wrap", color: "#333", marginBottom: 8, lineHeight: 1.4 }}>
+              {textoFelicitacao(m, idade)}
+            </div>
+            <CopyButton text={textoFelicitacao(m, idade)} />
+          </div>
+          <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#C0621B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Legenda da postagem padrão
+            </div>
+            <div style={{ fontSize: 12.5, whiteSpace: "pre-wrap", color: "#333", marginBottom: 8, lineHeight: 1.4 }}>
+              {textoPostagem(m, idade)}
+            </div>
+            <CopyButton text={textoPostagem(m, idade)} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PainelAniversarios() {
+  const [hoje] = useState(() => new Date());
+  const [busca, setBusca] = useState("");
+  const [filtroLotacao, setFiltroLotacao] = useState("Todas");
+  const [filtroMes, setFiltroMes] = useState("Todos");
+
+  const lotacoes = useMemo(() => {
+    const set = new Set(MILITARES.map((m) => m.lotacao).filter(Boolean));
+    return ["Todas", ...Array.from(set).sort()];
+  }, []);
+
+  const comDistancia = useMemo(() => {
+    return MILITARES.map((m) => {
+      const dias = diasAteAniversario(m.nascM, m.nascD, hoje);
+      const anoAtual = hoje.getFullYear();
+      let anoAniversario = anoAtual;
+      const proxData = new Date(anoAtual, m.nascM - 1, m.nascD);
+      const hojeZero = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+      if (proxData < hojeZero) anoAniversario = anoAtual + 1;
+      const idade = anoAniversario - m.nascY;
+      return { ...m, dias, idade };
+    }).sort((a, b) => a.dias - b.dias);
+  }, [hoje]);
+
+  const hojeLista = comDistancia.filter((m) => m.dias === 0);
+  const amanhaLista = comDistancia.filter((m) => m.dias === 1);
+
+  const filtrados = useMemo(() => {
+    return comDistancia.filter((m) => {
+      if (busca && !m.nome.toLowerCase().includes(busca.toLowerCase())) return false;
+      if (filtroLotacao !== "Todas" && m.lotacao !== filtroLotacao) return false;
+      if (filtroMes !== "Todos" && MESES[m.nascM - 1] !== filtroMes) return false;
+      return true;
+    });
+  }, [comDistancia, busca, filtroLotacao, filtroMes]);
+
+  const dataFormatada = hoje.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+
+  return (
+    <div style={{ fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif", background: "#F4F4F2", minHeight: "100vh", color: "#222" }}>
+      <div style={{ background: "linear-gradient(90deg,#1F3864,#2A4D8F)", padding: "18px 24px", color: "#fff" }}>
+        <div style={{ fontSize: 12, letterSpacing: 1.2, opacity: 0.85, textTransform: "uppercase" }}>
+          CBMPE · 2º Grupamento de Bombeiros
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2 }}>
+          🎂 Painel de Aniversários do Efetivo
+        </div>
+        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4, textTransform: "capitalize" }}>{dataFormatada}</div>
+      </div>
+
+      <div style={{ padding: "20px 24px", maxWidth: 980, margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: hojeLista.length && amanhaLista.length ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 24 }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EADFC8", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontWeight: 800, fontSize: 15, color: "#C0621B" }}>🎉 Hoje ({hojeLista.length})</span>
+            </div>
+            {hojeLista.length === 0 && <div style={{ fontSize: 13, color: "#888" }}>Nenhum aniversariante hoje.</div>}
+            {hojeLista.map((m) => (
+              <CardAniversariante key={m.matricula} m={m} idade={m.idade} destaque={true} />
+            ))}
+          </div>
+          {amanhaLista.length > 0 && (
+            <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EEE", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ fontWeight: 800, fontSize: 15, color: "#7B241C" }}>🔔 Amanhã ({amanhaLista.length})</span>
+              </div>
+              {amanhaLista.map((m) => (
+                <CardAniversariante key={m.matricula} m={m} idade={m.idade} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EEE" }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+            <div style={{ position: "relative", flex: "1 1 220px" }}>
+              <input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="🔍 Buscar militar pelo nome..."
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: 7,
+                  border: "1px solid #ccc",
+                  fontSize: 13,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+            <select
+              value={filtroLotacao}
+              onChange={(e) => setFiltroLotacao(e.target.value)}
+              style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid #ccc", fontSize: 13 }}
+            >
+              {lotacoes.map((l) => (
+                <option key={l} value={l}>{l === "Todas" ? "Todas as lotações" : l}</option>
+              ))}
+            </select>
+            <select
+              value={filtroMes}
+              onChange={(e) => setFiltroMes(e.target.value)}
+              style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid #ccc", fontSize: 13 }}
+            >
+              <option value="Todos">Todos os meses</option>
+              {MESES.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+            {filtrados.length} militar(es) — ordenado por proximidade da data de aniversário
+          </div>
+
+          <div style={{ maxHeight: 520, overflowY: "auto", paddingRight: 4 }}>
+            {filtrados.map((m) => (
+              <div
+                key={m.matricula}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "9px 4px",
+                  borderBottom: "1px solid #F0F0F0",
+                  fontSize: 13.5,
+                }}
+              >
+                <div>
+                  <span style={{ fontWeight: 600, color: "#1F3864" }}>{m.posto}</span>{" "}
+                  <span>{nomeCaixaMista(m.nome)}</span>
+                  <div style={{ fontSize: 11.5, color: "#999" }}>{m.lotacao || "—"}</div>
+                </div>
+                <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                  <div style={{ fontWeight: 700, color: m.dias === 0 ? "#C0621B" : m.dias === 1 ? "#7B241C" : "#444" }}>
+                    {String(m.nascD).padStart(2, "0")}/{String(m.nascM).padStart(2, "0")}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#999" }}>
+                    {m.dias === 0 ? "hoje" : m.dias === 1 ? "amanhã" : `em ${m.dias} dias`}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {filtrados.length === 0 && (
+              <div style={{ padding: 20, textAlign: "center", color: "#999", fontSize: 13 }}>
+                Nenhum militar encontrado com esses filtros.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ fontSize: 11.5, color: "#999", textAlign: "center", marginTop: 18, lineHeight: 1.5 }}>
+          Protótipo gerado a partir da planilha BACKUP DO PECÚLIO 2ºGB (177 militares) · Fase 0 do Plano de Sistema de Gestão de Aniversários
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<PainelAniversarios />);
+</script>
+</body>
+</html>
