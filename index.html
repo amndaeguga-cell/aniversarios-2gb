@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect, useMemo } from "react";
-import { Cake, Bell, Search, Copy, Check, ChevronDown, ChevronUp, PartyPopper } from "lucide-react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { Cake, Bell, Search, Copy, Check, ChevronDown, ChevronUp, PartyPopper, Camera, Download } from "lucide-react";
 
 const MILITARES_RAW = 
 [
@@ -146,6 +145,7 @@ const MILITARES_RAW =
   ["ELENILDO FLORÊNCIO FREITAS","Sd","1996-05-20","6ªSB","SOCORRISTA","722125-8"],
   ["YUSSAFI OSEITON SILVA BARRETO","Sd","1990-05-14","3ªSB","SOCORRISTA","722127-4"],
   ["ALAN NASCIMENTO BARROS PEREIRA","Sd","1996-07-01","6ªSB","SOCORRISTA","722128-2"],
+  ["JÚLIO TEÓFILO DOS SANTOS NETO","Sd","1993-04-25","3ªSB",null,"722138-0"],
   ["BRUNO OLIVEIRA SILVA DE MELO","Sd","1993-05-06","7ªSB","MERGULHADOR","722150-9"],
   ["ARTHUR ALVES FERREIRA DA SILVA","Sd","1993-09-01","4ªSB","SOCORRISTA","722183-5"],
   ["LYERTON IURY DA SILVA MORAIS","Sd","1995-05-30","5ªSB","SOCORRISTA","722189-4"],
@@ -181,9 +181,7 @@ const MILITARES_RAW =
   ["FELIPE HENRIQUE LEITE BARROS","Sd","1999-08-26","SCSv","Aux. STC","725129-7"],
   ["BRENDA FERNANDA CORDEIRO SILVA","Sd","1999-05-27","1ªSB","Combatente","725173-4"],
   ["MARILIA EDUARDA ALVES DA SILVA","Sd","1993-09-04","1ªSB","Combatente","725180-7"]
-];
-
-const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+]
 const MESES_LONGO = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
 function parseData(iso) {
@@ -268,6 +266,171 @@ function CopyButton({ text }) {
   );
 }
 
+function fitText(ctx, text, maxWidth, initialSize, weight = "bold") {
+  let size = initialSize;
+  ctx.font = `${weight} ${size}px Arial`;
+  while (ctx.measureText(text).width > maxWidth && size > 22) {
+    size -= 2;
+    ctx.font = `${weight} ${size}px Arial`;
+  }
+  return size;
+}
+
+function ImageCardGenerator({ m, idade }) {
+  const canvasRef = useRef(null);
+  const [photoSrc, setPhotoSrc] = useState(null);
+  const [pronta, setPronta] = useState(false);
+
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPronta(false);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhotoSrc(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  useEffect(() => {
+    if (!photoSrc) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "#F4F1EA";
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = "#1F3864";
+      ctx.fillRect(0, 0, W, 130);
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.font = "bold 30px Arial";
+      ctx.fillText("CBMPE · 2º GRUPAMENTO DE BOMBEIROS", W / 2, 80);
+
+      ctx.fillStyle = "#C0621B";
+      const tituloSize = fitText(ctx, "FELIZ ANIVERSÁRIO! 🎉", W - 100, 68);
+      ctx.font = `bold ${tituloSize}px Arial`;
+      ctx.fillText("FELIZ ANIVERSÁRIO! 🎉", W / 2, 250);
+
+      const size = 420;
+      const cx = W / 2, cy = 540;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      const ratio = Math.max(size / img.width, size / img.height);
+      const iw = img.width * ratio, ih = img.height * ratio;
+      ctx.drawImage(img, cx - iw / 2, cy - ih / 2, iw, ih);
+      ctx.restore();
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = "#7B241C";
+      ctx.beginPath();
+      ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const nomeTxt = `${m.posto} ${nomeCaixaMista(m.nome)}`;
+      ctx.fillStyle = "#1F3864";
+      const nomeSize = fitText(ctx, nomeTxt, W - 90, 46);
+      ctx.font = `bold ${nomeSize}px Arial`;
+      ctx.fillText(nomeTxt, W / 2, 830);
+
+      const subTxt = `${m.lotacao ? m.lotacao + " · " : ""}completa ${ordinalIdade(idade)}`;
+      ctx.fillStyle = "#555";
+      ctx.font = "30px Arial";
+      ctx.fillText(subTxt, W / 2, 875);
+
+      ctx.fillStyle = "#7B241C";
+      ctx.fillRect(0, H - 85, W, 85);
+      ctx.fillStyle = "#fff";
+      ctx.font = "26px Arial";
+      ctx.fillText("#CBMPE   #2ºGB   #BombeirosPE", W / 2, H - 34);
+
+      setPronta(true);
+    };
+    img.src = photoSrc;
+  }, [photoSrc, m, idade]);
+
+  function baixar() {
+    const canvas = canvasRef.current;
+    const link = document.createElement("a");
+    const slug = m.nome.split(" ")[0].toLowerCase();
+    link.download = `aniversario_${slug}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
+  return (
+    <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10, marginTop: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#1F3864", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        Card de imagem padrão (com foto)
+      </div>
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <div>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#1F3864",
+              color: "#fff",
+              borderRadius: 6,
+              padding: "8px 12px",
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: "pointer",
+              width: "fit-content",
+            }}
+          >
+            <Camera size={14} /> Escolher foto do militar
+            <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+          </label>
+          {pronta && (
+            <button
+              onClick={baixar}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                marginTop: 8,
+                background: "#2E7D32",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                padding: "8px 12px",
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              <Download size={14} /> Baixar imagem (PNG)
+            </button>
+          )}
+          {!photoSrc && (
+            <div style={{ fontSize: 11.5, color: "#999", marginTop: 8, maxWidth: 190 }}>
+              Escolha uma foto para gerar o card pronto para postar no WhatsApp.
+            </div>
+          )}
+        </div>
+        <canvas
+          ref={canvasRef}
+          width={1080}
+          height={1080}
+          style={{
+            width: 170,
+            height: 170,
+            borderRadius: 8,
+            border: "1px solid #ddd",
+            display: photoSrc ? "block" : "none",
+            background: "#fff",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function CardAniversariante({ m, idade, destaque }) {
   const [aberto, setAberto] = useState(false);
   return (
@@ -307,30 +470,33 @@ function CardAniversariante({ m, idade, destaque }) {
             whiteSpace: "nowrap",
           }}
         >
-          Gerar textos {aberto ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          Gerar textos e imagem {aberto ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
       {aberto && (
-        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#7B241C", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Mensagem de felicitação
+        <React.Fragment>
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#7B241C", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                Mensagem de felicitação
+              </div>
+              <div style={{ fontSize: 12.5, whiteSpace: "pre-wrap", color: "#333", marginBottom: 8, lineHeight: 1.4 }}>
+                {textoFelicitacao(m, idade)}
+              </div>
+              <CopyButton text={textoFelicitacao(m, idade)} />
             </div>
-            <div style={{ fontSize: 12.5, whiteSpace: "pre-wrap", color: "#333", marginBottom: 8, lineHeight: 1.4 }}>
-              {textoFelicitacao(m, idade)}
+            <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#C0621B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                Legenda da postagem padrão
+              </div>
+              <div style={{ fontSize: 12.5, whiteSpace: "pre-wrap", color: "#333", marginBottom: 8, lineHeight: 1.4 }}>
+                {textoPostagem(m, idade)}
+              </div>
+              <CopyButton text={textoPostagem(m, idade)} />
             </div>
-            <CopyButton text={textoFelicitacao(m, idade)} />
           </div>
-          <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#C0621B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Legenda da postagem padrão
-            </div>
-            <div style={{ fontSize: 12.5, whiteSpace: "pre-wrap", color: "#333", marginBottom: 8, lineHeight: 1.4 }}>
-              {textoPostagem(m, idade)}
-            </div>
-            <CopyButton text={textoPostagem(m, idade)} />
-          </div>
-        </div>
+          <ImageCardGenerator m={m} idade={idade} />
+        </React.Fragment>
       )}
     </div>
   );
