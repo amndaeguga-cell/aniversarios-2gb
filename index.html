@@ -1,7 +1,25 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Cake, Bell, Search, Copy, Check, ChevronDown, ChevronUp, PartyPopper, Camera, Download } from "lucide-react";
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2ºGB — Painel de Aniversários</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #F4F4F2; }
+  * { box-sizing: border-box; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
 
-const MILITARES_RAW = 
+const MILITARES_RAW =
 [
   ["JOSÉ HENRIQUE ARRUDA DANTAS","TEN CEL QOC","1976-10-30","SEDE","Cmd","970007-2"],
   ["ANDRÉ PEREIRA DA SILVA","Maj QOC","1984-12-31","SEDE","SubCmd","707445-0"],
@@ -182,7 +200,6 @@ const MILITARES_RAW =
   ["BRENDA FERNANDA CORDEIRO SILVA","Sd","1999-05-27","1ªSB","Combatente","725173-4"],
   ["MARILIA EDUARDA ALVES DA SILVA","Sd","1993-09-04","1ªSB","Combatente","725180-7"]
 ]
-const MESES_LONGO = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
 function parseData(iso) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -210,10 +227,6 @@ function diasAteAniversario(nascM, nascD, hoje) {
   return Math.round(diffMs / 86400000);
 }
 
-function primeiroNome(nomeCompleto) {
-  return nomeCompleto.split(" ")[0].charAt(0) + nomeCompleto.split(" ")[0].slice(1).toLowerCase();
-}
-
 function nomeCaixaMista(nomeCompleto) {
   return nomeCompleto
     .split(" ")
@@ -234,17 +247,31 @@ function textoPostagem(m, idade) {
   return `🎂 ANIVERSARIANTE DO DIA 🎂\n\n${m.posto} ${nomeCaixaMista(m.nome)}\n${m.lotacao ? `Lotação: ${m.lotacao}` : ""}\n\nO 2º Grupamento de Bombeiros parabeniza o(a) militar pelo seu aniversário! Muita saúde, paz e sucesso!\n\n#CBMPE #2ºGB #BombeirosPE`;
 }
 
+function copiarTexto(text, onDone) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(onDone).catch(() => fallbackCopy(text, onDone));
+  } else {
+    fallbackCopy(text, onDone);
+  }
+}
+function fallbackCopy(text, onDone) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  onDone();
+}
+
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(text);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1800);
-        } catch (e) {}
-      }}
+      onClick={() => copiarTexto(text, () => { setCopied(true); setTimeout(() => setCopied(false), 1800); })}
       style={{
         display: "flex",
         alignItems: "center",
@@ -257,11 +284,9 @@ function CopyButton({ text }) {
         fontSize: 13,
         fontWeight: 600,
         cursor: "pointer",
-        transition: "background .15s",
       }}
     >
-      {copied ? <Check size={14} /> : <Copy size={14} />}
-      {copied ? "Copiado!" : "Copiar texto"}
+      {copied ? "✓ Copiado!" : "⧉ Copiar texto"}
     </button>
   );
 }
@@ -298,9 +323,11 @@ function ImageCardGenerator({ m, idade }) {
     const img = new Image();
     img.onload = () => {
       ctx.clearRect(0, 0, W, H);
+      // fundo
       ctx.fillStyle = "#F4F1EA";
       ctx.fillRect(0, 0, W, H);
 
+      // barra superior
       ctx.fillStyle = "#1F3864";
       ctx.fillRect(0, 0, W, 130);
       ctx.fillStyle = "#fff";
@@ -308,11 +335,13 @@ function ImageCardGenerator({ m, idade }) {
       ctx.font = "bold 30px Arial";
       ctx.fillText("CBMPE · 2º GRUPAMENTO DE BOMBEIROS", W / 2, 80);
 
+      // título
       ctx.fillStyle = "#C0621B";
       const tituloSize = fitText(ctx, "FELIZ ANIVERSÁRIO! 🎉", W - 100, 68);
       ctx.font = `bold ${tituloSize}px Arial`;
       ctx.fillText("FELIZ ANIVERSÁRIO! 🎉", W / 2, 250);
 
+      // foto circular
       const size = 420;
       const cx = W / 2, cy = 540;
       ctx.save();
@@ -330,17 +359,20 @@ function ImageCardGenerator({ m, idade }) {
       ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
       ctx.stroke();
 
+      // nome
       const nomeTxt = `${m.posto} ${nomeCaixaMista(m.nome)}`;
       ctx.fillStyle = "#1F3864";
       const nomeSize = fitText(ctx, nomeTxt, W - 90, 46);
       ctx.font = `bold ${nomeSize}px Arial`;
       ctx.fillText(nomeTxt, W / 2, 830);
 
+      // lotação/idade
       const subTxt = `${m.lotacao ? m.lotacao + " · " : ""}completa ${ordinalIdade(idade)}`;
       ctx.fillStyle = "#555";
       ctx.font = "30px Arial";
       ctx.fillText(subTxt, W / 2, 875);
 
+      // rodapé
       ctx.fillStyle = "#7B241C";
       ctx.fillRect(0, H - 85, W, 85);
       ctx.fillStyle = "#fff";
@@ -370,9 +402,7 @@ function ImageCardGenerator({ m, idade }) {
         <div>
           <label
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
+              display: "inline-block",
               background: "#1F3864",
               color: "#fff",
               borderRadius: 6,
@@ -380,19 +410,16 @@ function ImageCardGenerator({ m, idade }) {
               fontSize: 12.5,
               fontWeight: 600,
               cursor: "pointer",
-              width: "fit-content",
             }}
           >
-            <Camera size={14} /> Escolher foto do militar
+            📷 Escolher foto do militar
             <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
           </label>
           {pronta && (
             <button
               onClick={baixar}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
+                display: "block",
                 marginTop: 8,
                 background: "#2E7D32",
                 color: "#fff",
@@ -404,7 +431,7 @@ function ImageCardGenerator({ m, idade }) {
                 cursor: "pointer",
               }}
             >
-              <Download size={14} /> Baixar imagem (PNG)
+              ⬇ Baixar imagem (PNG)
             </button>
           )}
           {!photoSrc && (
@@ -462,15 +489,12 @@ function CardAniversariante({ m, idade, destaque }) {
             borderRadius: 6,
             padding: "5px 8px",
             cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
             fontSize: 12,
             color: "#333",
             whiteSpace: "nowrap",
           }}
         >
-          Gerar textos e imagem {aberto ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          Gerar textos e imagem {aberto ? "▲" : "▼"}
         </button>
       </div>
       {aberto && (
@@ -502,7 +526,7 @@ function CardAniversariante({ m, idade, destaque }) {
   );
 }
 
-export default function PainelAniversarios() {
+function PainelAniversarios() {
   const [hoje] = useState(() => new Date());
   const [busca, setBusca] = useState("");
   const [filtroLotacao, setFiltroLotacao] = useState("Todas");
@@ -541,13 +565,13 @@ export default function PainelAniversarios() {
   const dataFormatada = hoje.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif", background: "#F4F4F2", minHeight: "100%", color: "#222" }}>
+    <div style={{ fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif", background: "#F4F4F2", minHeight: "100vh", color: "#222" }}>
       <div style={{ background: "linear-gradient(90deg,#1F3864,#2A4D8F)", padding: "18px 24px", color: "#fff" }}>
         <div style={{ fontSize: 12, letterSpacing: 1.2, opacity: 0.85, textTransform: "uppercase" }}>
           CBMPE · 2º Grupamento de Bombeiros
         </div>
-        <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2, display: "flex", alignItems: "center", gap: 8 }}>
-          <Cake size={22} /> Painel de Aniversários do Efetivo
+        <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2 }}>
+          🎂 Painel de Aniversários do Efetivo
         </div>
         <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4, textTransform: "capitalize" }}>{dataFormatada}</div>
       </div>
@@ -556,19 +580,17 @@ export default function PainelAniversarios() {
         <div style={{ display: "grid", gridTemplateColumns: hojeLista.length && amanhaLista.length ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 24 }}>
           <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EADFC8", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <PartyPopper size={18} color="#C0621B" />
-              <span style={{ fontWeight: 800, fontSize: 15, color: "#C0621B" }}>Hoje ({hojeLista.length})</span>
+              <span style={{ fontWeight: 800, fontSize: 15, color: "#C0621B" }}>🎉 Hoje ({hojeLista.length})</span>
             </div>
             {hojeLista.length === 0 && <div style={{ fontSize: 13, color: "#888" }}>Nenhum aniversariante hoje.</div>}
             {hojeLista.map((m) => (
-              <CardAniversariante key={m.matricula} m={m} idade={m.idade} destaque />
+              <CardAniversariante key={m.matricula} m={m} idade={m.idade} destaque={true} />
             ))}
           </div>
           {amanhaLista.length > 0 && (
             <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EEE", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                <Bell size={18} color="#7B241C" />
-                <span style={{ fontWeight: 800, fontSize: 15, color: "#7B241C" }}>Amanhã ({amanhaLista.length})</span>
+                <span style={{ fontWeight: 800, fontSize: 15, color: "#7B241C" }}>🔔 Amanhã ({amanhaLista.length})</span>
               </div>
               {amanhaLista.map((m) => (
                 <CardAniversariante key={m.matricula} m={m} idade={m.idade} />
@@ -580,14 +602,13 @@ export default function PainelAniversarios() {
         <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EEE" }}>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
             <div style={{ position: "relative", flex: "1 1 220px" }}>
-              <Search size={15} style={{ position: "absolute", left: 10, top: 9, color: "#999" }} />
               <input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar militar pelo nome..."
+                placeholder="🔍 Buscar militar pelo nome..."
                 style={{
                   width: "100%",
-                  padding: "8px 10px 8px 32px",
+                  padding: "8px 10px",
                   borderRadius: 7,
                   border: "1px solid #ccc",
                   fontSize: 13,
@@ -663,3 +684,9 @@ export default function PainelAniversarios() {
     </div>
   );
 }
+
+ReactDOM.createRoot(document.getElementById("root")).render(<PainelAniversarios />);
+</script>
+</body>
+</html>
+
