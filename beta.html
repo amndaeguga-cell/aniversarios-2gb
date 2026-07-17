@@ -1,1 +1,961 @@
-teste
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2ºGB — Painel de Aniversários</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #F4F4F2; }
+  * { box-sizing: border-box; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
+
+const BRASAO_2GB = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASIAAAEiCAMAAABqYC+EAAAB/lBMVEUnn1yli2UnJSLXmlyjoZ1Vp29fX2SVNFWk07XcOEbqYWMfJFxpKyve5t8iTDO508lcN2h4koqOj8PGtrUoZk+SYl5cUS/4yRklKpbxfoF0xJNmXZSHbIknUJfsDg7+/v49QJTsMjf8yinq6us4O5KjXUzW1tZIR0lDRJU2NjcEp1hWVldnZmjIyMmop6i3t7eIiIiXlpZ2d3csKSyTV0nQNDhIOjPMpStQRTDmuyp0GxvasS65lyvsKS2Rdy0nKJJuJiw3OHJySkO3t9FnRDuniCs3OEmnqMxpVy1nZ65QKSry2dkoKEtVVqWvMzmxLTBZWmPsGBrX1+aDbCyWl8PHLjI6Q0ZYVo94YyyFhrmPLTB2d7T1qar4x8gZGStmW4sYGZCHeHVFPo/wVldKSqImqlnzl5iYmbDCnSzsGCLvSEsiHTPMp07yhojvo1NGPUZoV1SSMTf2tbZZY2SqeXDZl1rMzODL59UYGBmcgC22l1nDwb7xdngWO48sVTd7e4YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEQ6WmAAAAgHRSTlP//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////xUHpOoAACqASURBVHja7Z2Jf9NG+vBzEcp9lba73fd1nFFGErolR7bXiXM7JyEQjpBwBShQoAVKaTm65V//zYyukTSSxolDSGN9dkswjjT66rnnmVFPyTtA90gfHpqeUvcoOLqIuoi6iLqIuoi6iLqIuoi6RxdRF1EXURdRF1EXURdRF1H36CLqIuoiOsyIgNVFVHBost5FlH9Yrqx1EeUe9uamArqI8kzRzdHykt5FlHOok+XyKhYj0EXEPnR5tFwexdZIN0AXURahcnlpoFSC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";
+
+const MILITARES_RAW =
+[
+  ["JOSÉ HENRIQUE ARRUDA DANTAS","TEN CEL QOC","1976-10-30","SEDE","Cmd","970007-2"],
+  ["ANDRÉ PEREIRA DA SILVA","Maj QOC","1984-12-31","SEDE","SubCmd","707445-0"],
+  ["LUCIVÂNIO DAVID LOPES","Cap QOA","1980-02-01","SEDE","6ªSB; Tes (SAC, NAS)","707074-8"],
+  ["ERIK HENRIQUE CLEMENTE DE ALMEIDA","2º Ten QOC","1991-04-12","SEDE","2ªSB","722205-0"],
+  ["HELMITON VALDEMAR DA SILVA FILHO","2º Ten QOC","1992-12-23","SEDE","3ªSB; SICT","722213-0"],
+  ["JOSÉ ANDERSON TORRES BEZERRA","2º Ten QOC","1990-11-25","SEDE","5ªSB","723001-0"],
+  ["KELVIN RUDAH SILVA DA VEIGA","2º Ten QOC","1992-05-27","SEDE","1ªSB","723009-5"],
+  ["PEDRO RUFINO DE MENEZES NETO","2º Ten QOC","1989-10-16","SEDE","4ªSB","723014-1"],
+  ["DANILO JANUÁRIO SILVA","2º Ten QOC","1990-10-09","SEDE","6ªSB","723015-0"],
+  ["JÉSSICA BEATRIZ DE VASCONCELOS EGITO ALVES","2º Ten QOC","1995-07-22","SEDE","7ªSB","718099-3"],
+  ["NAZARENO FELIPE DA SILVA","2º Ten QOA","1974-09-11","SEDE","DA (SP); STSGT (SMO)","798245-3"],
+  ["MARCEL EMANUEL TARGINO COUTO DA SILVA","2º Ten QOC","1989-10-26","SEDE","STC","718075-6"],
+  ["AMANDA DE ARAUJO CARVALHO","ASP BM","1996-05-14",null,null,"726008-3"],
+  ["DANILO CÉSAR BEZERRA PEREIRA","ASP BM","1991-03-10",null,null,"726014-8"],
+  ["ITALO CAVALCANTI CORREIA","ASP BM","1996-07-07",null,null,"726015-6"],
+  ["ADRIANO RENATO MENDES DA SILVA","SubTen","1976-09-23","1ªSB","Aux. 1ªSB","798045-0"],
+  ["DÁRIO FRANCISCO BISERRA","SubTen","1975-11-28","1ªSB","Adjunto","798085-0"],
+  ["JULIO CEZAR BARRETO FALCÃO","SubTen","1979-07-27","4ªSB","Adjunto","704089-0"],
+  ["JOSÉ ADELSON DE BARROS","SubTen","1979-05-10","1ªSB","adjunto","707170-1"],
+  ["JONATAS DUQUE DOS SANTOS","SubTen","1986-06-22","SCSv","Aux. 1ªSB","707068-3"],
+  ["RANIERE DE FRANÇA LIMA","SubTen","1988-06-28","SCSv","Aux Almox","707009-8"],
+  ["CARLOS HENRIQUE FERNANDES DOS SANTOS","1º Sgt","1986-05-09","4ªSB","Combatente","707334-8"],
+  ["RUI GESSÉ BELARMINO TEIXEIRA","1º Sgt","1968-10-08","1ªSB","Motorista","910230-2"],
+  ["FRANCISCO QUIRINO DA SILVA FILHO","1º Sgt","1972-07-15","3ªSB","Combatente","940489-9"],
+  ["JOSÉ FERREIRA DE OLIVEIRA JÚNIOR","1º Sgt","1971-05-29","4ªSB","Motorista","920582-9"],
+  ["GUTIERRES OLIVEIRA DO NASCIMENTO","1º Sgt","1971-09-09","2ªSB","Socorrista","930539-4"],
+  ["LUCIANO C. PONTES DE ALBUQUERQUE","1º Sgt","1975-04-24","2ªSB","Motorista","798207-0"],
+  ["JAMES BEZERRA DE MOURA","1º Sgt","1978-01-07","SCSv","Aux. SCP","798161-9"],
+  ["WINSTON SANTOS TINÉ","1º Sgt","1975-10-30","3ªSB","Motorista","798316-6"],
+  ["SILVÉRIO CAVALCANTI DE MELO","1º Sgt","1972-05-07","SCSv","Aux. DvOp","798281-0"],
+  ["WELLINGTON MARCOS DA SILVA MELO","2º Sgt","1973-11-27","3ªSB","Socorrista","798306-9"],
+  ["JOSÉ PAULO TORRES","2º Sgt","1973-10-04","2ªSB","Socorrista","798188-0"],
+  ["MELQUISEDEC  CAETANO DE MENEZES","2º Sgt","1973-10-06","4ªSB","Motorista","798237-2"],
+  ["MARCELO JOSÉ DA SILVA","2º Sgt","1974-11-03","1ªSB","Combatente","798223-2"],
+  ["JOSÉ LIVALDO BARBOSA LEÃO","2º Sgt","1976-09-05","2ªSB","Motorista","798154-6"],
+  ["JOSÉ HUMBERTO LUNA BRAGA DE MELO","2º Sgt","1983-01-16","7ªSB","MERGULHADOR","707233-3"],
+  ["JOSÉ GIVANILSON COSTA TORRES","2º Sgt","1970-03-27","1ªSB","Combatente","940672-7"],
+  ["ÍCARO LIRA POVOAS","2º Sgt","1986-03-03","1ªSB","Combatente","707141-8"],
+  ["JUAN QUARESMA ADELINO DA SILVA","2º Sgt","1982-05-21","7ªSB","MERGULHADOR","707395-0"],
+  ["ANDERSON TULIO JOSÉ DA MOTA TOMAZ","2º Sgt","1987-05-08","1ªSB","Combatente","707339-9"],
+  ["VAGNER CLAYTON DA SILVA","2º Sgt","1981-03-24","SCSv","AUX. DA","707245-7"],
+  ["ANDERSON CARLOS PEREIRA LEITE","2º Sgt","1987-02-12","1ªSB","Combatente","707331-3"],
+  ["ÊNIO RODRIGO VASCONCELOS DE CARVALHO","2º Sgt","1981-10-07","5ªSB","Combatente","707012-8"],
+  ["MAGNUM RODRIGO SILVA","2º Sgt","1984-10-05","5ªSB","Combatente","707326-7"],
+  ["THIAGO FIDELES DE SOUSA FELICIANO","2º Sgt","1988-02-06","6ªSB","Socorrista","707264-3"],
+  ["HENRIQUE CURSINO DOS SANTOS","3º Sgt","1985-07-15","6ªSB","Motorista","707188-4"],
+  ["MARCELO DOS SANTOS FONSECA","3º Sgt","1982-11-10","7ªSB","MERGULHADOR","707102-7"],
+  ["JERRY ANDERSON BEZERRA CAVALCANTI","3º Sgt","1980-06-19","1ªSB","Combatente","707376-3"],
+  ["SÉRGIO RICARDO DA COSTA CABRAL","3º Sgt","1978-03-10","2ªSB","Combatente","707077-2"],
+  ["LUIZ NUNES DA SILVA JUNIOR","3º Sgt","1979-06-16","SCSv","Aux. STC","710138-4"],
+  ["RAFAEL BARBOSA ROCHA","3º Sgt","1984-12-28","SCSv","aux. SMO","710150-3"],
+  ["ALYSON JEFERSON FARIAS DE LUCENA","3º Sgt","1981-11-26","7ªSB","MERGULHADOR","710266-6"],
+  ["CLEMENSON DA SILVA MARQUEZIN","3º Sgt","1984-12-17","7ªSB","MERGULHADOR","710012-4"],
+  ["WANESSA BORGES MACEDO","3º Sgt","1989-03-31","1ªSB","Socorrista","710072-8"],
+  ["IZAIAS JOSÉ BENVENUTO GONÇALVES","3º Sgt","1981-08-31","1ªSB","Socorrista","710181-3"],
+  ["JOYCE MANUELLA DA SILVA FARIAS","3º Sgt","1983-02-15","SCSv","Aux. 1ªSB","710419-7"],
+  ["SIDRAILDO SEVERINO DOS SANTOS","3º Sgt","1979-12-23","SCSv","Aux. STC","710093-0"],
+  ["MATEUS PEREIRA TENORIO","3º Sgt","1981-10-16","1ªSB","Combatente","710146-5"],
+  ["ADEILDO JOSÉ DE ANDRADE","3º Sgt","1984-08-20","1ªSB","Motorista","710059-0"],
+  ["ODEVALDO DE BARROS SOBRAL","3º Sgt","1982-03-15","3ªSB","Motorista","710336-0"],
+  ["JOÃO LUIZ DE MAGALHÃES JÚNIOR","3º Sgt","1979-12-27","3ªSB","Socorrista","710200-3"],
+  ["PAULO ANDRÉ XAVIER LEITE DA SILVA","3º Sgt","1985-04-05","1ªSB",null,"710225-9"],
+  ["JEFFERSON FRANCISCO DOS SANTOS AIRES","3º Sgt","1982-11-27","2ªSB","Combatente","710324-7"],
+  ["JOSE FERNANDO HENRIQUE DE LUCENA","3º Sgt","1980-08-30","3ªSB","Socorrista","710398-0"],
+  ["WAMBERTO REIS DA SILVA","3º Sgt","1986-07-11","3ªSB","Motorista","710227-5"],
+  ["GENILSON BARROS DE SOUZA","3º Sgt","1985-06-03","1ªSB","TELEFONISTA","710182-1"],
+  ["FLÁVIO ROBERTO DA SILVA PEREIRA","3º Sgt","1980-05-27","5ªSB","Socorrista","710204-6"],
+  ["RODRIGO APOLÔNIO DE LIMA","3º Sgt","1979-03-31","3ªSB","Socorrista","710083-3"],
+  ["LUCIANO JOSÉ DA SILVA","3º Sgt","1980-11-27","2ªSB","Combatente","710315-8"],
+  ["EDSON FERREIRA DA SILVA JUNIOR","3º Sgt","1977-01-05","2ªSB","Combatente","710420-0"],
+  ["DANIEL FERREIRA DA SILVA","3º Sgt","1979-04-11","6ªSB","Combatente","710228-3"],
+  ["JOSÉ ROBERVALTER DOS SANTOS SILVA","3º Sgt","1981-02-27","1ªSB","TELEFONISTA","711149-5"],
+  ["JOSÉ ROSEMBERGUE DOS SANTOS","3º Sgt","1978-06-01","SCSv","Combatente","710192-9"],
+  ["ANDERSON HENRIQUE TEIXEIRA DE MOURA","3º Sgt","1987-08-27","2ªSB","Motorista","711281-5"],
+  ["DOUGLAS CURSINO DE ARAÚJO SILVA","3º Sgt","1979-11-16","6ªSB","Combatente","711145-2"],
+  ["EMERSON DAYVID FÉLIX RAMOS","3º Sgt","1984-04-27","2ªSB","Motorista","711117-7"],
+  ["PAUL ANDERSON DE MORAIS ARAÚJO","3º Sgt","1984-11-13","5ªSB","Combatente","711026-0"],
+  ["BRUNO HERBERT PEREIRA DE MELO","3º Sgt","1980-11-23","1ªSB","Combatente","711071-5"],
+  ["FÁBIO DA SILVA SALES","3º Sgt","1986-07-07","7ªSB","MERGULHADOR","711036-7"],
+  ["JOSÉ RAFAEL DA SILVA","3º Sgt","1989-01-05","7ªSB","MERGULHADOR","711100-2"],
+  ["RODRIGO MATIAS JOSE DA SILVA","3º Sgt","1988-03-20","7ªSB","MERGULHADOR","711157-6"],
+  ["ADRIANO RICELLI GOMES DOS SANTOS","3º Sgt","1978-08-20","3ªSB","Socorrista","711364-1"],
+  ["JÚLIO MARIA DE ARAÚJO NETTO","3º Sgt","1983-12-03","1ªSB","Motorista","711011-1"],
+  ["MARCOS FERNANDO DA SILVA","3º Sgt","1979-12-01","4ªSB","Combatente","711317-0"],
+  ["ROBERTO VAGNER SANTOS DA SILVA","3º Sgt","1982-11-19","1ªSB","Motorista","711334-0"],
+  ["ANDERSON FRANCISCO DA SILVA","3º Sgt","1985-10-08","1ªSB","Combatente","711327-7"],
+  ["ANDERSON AUGUSTO DE FIGUEIREDO SILVA","3º Sgt","1986-06-24","1ªSB","Combatente","711280-7"],
+  ["JOSÉ FÁBIO DE SOUSA","Cb","1982-12-30","SCSv","READAPTADO","711266-1"],
+  ["GLAUCIO VIEIRA TORRES NETO","Cb","1986-07-11","3ªSB","Combatente","711040-5"],
+  ["JEANNE FRACINETE DOS SANTOS","Cb","1985-06-16","2ªSB","Combatente","711330-7"],
+  ["ADRIANO FERREIRA DE SOUZA","Cb","1977-06-04","4ªSB","Motorista","711113-4"],
+  ["JOSÉ SIDCLEIBSON ALVES DOS SANTOS","Cb","1986-06-08","6ªSB","Combatente","711283-1"],
+  ["NATANAEL JACINTO PEREIRA","Cb","1979-06-21","4ªSB","Motorista","711059-6"],
+  ["JOSÉ ERALDO CORDEIRO DUARTE","Cb","1983-09-22","4ªSB","Combatente","711138-0"],
+  ["FLÁVIO FERNANDES DA SILVA","Cb","1990-09-17","SCSv","Aux. DA","718023-3"],
+  ["ALANDERSON LEON GOMES DE FREITAS TORRES","Cb","1992-08-12","6ªSB","Combatente","718041-1"],
+  ["ANIELE RENATA GOMES FERREIRA","Cb","1990-07-31","2ªSB",null,"718050-0"],
+  ["THAIRONE CARVALHO DA SILVA","Cb","1993-02-28","2ªSB","Combatente","718054-3"],
+  ["TASSIO FERREIRA SILVA","Cb","1990-09-14","SCSv","Aux. SCP","718072-1"],
+  ["ALLANO GUSTAVO MONTEIRO SANTOS JÚNIOR","Cb","1994-02-15","5ªSB","TELEFONISTA","718073-0"],
+  ["TÁRCIO MAURÍCIO CAVALCANTE DE ANDRADE","Cb","1993-01-17","4ªSB","Combatente","718076-4"],
+  ["SIVONALDO CRISTOVÃO DA SILVA","Cb","1988-05-26","4ªSB","Combatente","718079-9"],
+  ["THIAGO GABRIEL BARBOSA DE MENEZES PEREIRA","Cb","1992-08-14","6ªSB","Combatente","718083-7"],
+  ["INALDO DE OLIVEIRA LEITE JÚNIOR","Cb","1995-12-13","SCSv","ADIDO POR ESTÁ FREQUENTANDO CFO PMPE","718112-4"],
+  ["JONATHA BATISTA DA SILVA","Cb","1994-12-25","SCSv","Aux. SCP","718113-2"],
+  ["ALLAN KARDEC PEREIRA SANTOS","Cb","1995-01-30","5ªSB","Combatente","718114-0"],
+  ["FELIPE WALLACE DE SOUSA MACHADO","Cb","1991-09-24","5ªSB","Combatente","718116-7"],
+  ["LINDBERG DOS SANTOS LIMA","Cb","1991-01-06","1ªSB","Combatente","718119-1"],
+  ["JOSÉ CLÁUDIO ARAÚJO DA SILVA JUNIOR","Cb","1993-11-16","4ªSB","Combatente","718133-7"],
+  ["JOSÉ HUMBERTO PEREIRA","Cb","1992-01-04","2ªSB","Combatente","718149-3"],
+  ["MAILSON DA MOTA MONTEIRO","Cb","1988-05-11","6ªSB","Combatente","718150-7"],
+  ["SILAS ITALO LUNA","Cb","1992-08-28","4ªSB","Combatente","718168-0"],
+  ["JOSEANE CRISLAYNE DA SILVA BEZERRA","Cb","1990-03-24","1ªSB","Combatente","718176-0"],
+  ["ÍTALO FELIPE TORRES BARBOSA","Cb","1990-03-14","3ªSB","Combatente","718215-5"],
+  ["ALLISON MATHEUS GONÇALVES DE MÉLO","Cb","1997-10-07","SCSv","Aux. DvOp","718244-9"],
+  ["GERALDO JÚNIOR DOS SANTOS TEIXEIRA","Cb","1999-07-01","1ªSB","Aux. STC","718267-8"],
+  ["DANIEL MELO DE SOUZA BELO","Cb","1990-02-05","5ªSB","Combatente","718280-5"],
+  ["JONATAN PACHECO DA SILVA","Cb","1997-12-30","3ªSB","Combatente","718275-9"],
+  ["AUGUSTO HEITOR TABOSA PEREIRA","Sd","1992-03-03","2ªSB","Combatente","722002-2"],
+  ["HIAGO ALVES OLIVEIRA","Sd","1992-05-15","5ªSB","Combatente","722004-9"],
+  ["CÍCERO ALAN DE FREITAS","Sd","1989-01-15","3ªSB","Combatente","722009-0"],
+  ["LUCAS SANTOS DE VASCONCELOS","Sd","1990-03-20","3ªSB","Combatente","722012-0"],
+  ["ANAILSON CÉSAR SOBRAL DE OLIVEIRA LEITE","Sd","1995-01-23","2ªSB","Combatente","722013-8"],
+  ["ITALO CESAR GOMES DE MOURA","Sd","1996-12-06","2ªSB","Combatente","722024-3"],
+  ["DANIEL SÁ BARRETO DE MIRANDA","Sd","1997-09-12","7ªSB","MERGULHADOR","722029-4"],
+  ["ANDRÉ DAYVISON LEMOS DA SILVA","Sd","1988-07-11","2ªSB","combatente","722035-9"],
+  ["ABIMAEL DE OLIVEIRA SANTOS NETO","Sd","1992-11-15","5ªSB","Combatente","722038-3"],
+  ["THIAGO FILIPE DE SOUZA LIMA","Sd","1990-11-03","1ªSB","Combatente","722039-1"],
+  ["IGOR ROLEMBERG SILVA AMARAL","Sd","1992-04-27","6ªSB","Combatente","722044-8"],
+  ["HÉDER DA SILVA ESCOBAR","Sd","1993-12-25","6ªSB","Combatente","722050-2"],
+  ["DIEGO DIONES CABRAL","Sd","1989-11-08","6ªSB","Combatente","722064-2"],
+  ["DAIVSON SILVA DO NASCIMENTO","Sd","1988-02-22","7ªSB","MERGULHADOR","722065-0"],
+  ["ALINE LÚCIA TENÓRIO DA SILVA","Sd","1989-12-20","5ªSB","Combatente","722069-3"],
+  ["ALEX VANILSON DA SILVA SANTOS","Sd","1993-10-12","2ªSB","Combatente","722088-0"],
+  ["IGOR NATHAN DO NASCIMENTO SANTOS","Sd","1999-03-20","4ªSB","Combatente","722102-9"],
+  ["JAANDERSON ALVES FLORÊNCIO","Sd","1999-07-21","6ªSB","Combatente","722107-0"],
+  ["ARLESON KENNEDI FRANÇA DOS SANTOS","Sd","1993-11-22","6ªSB","SOCORRISTA","722108-8"],
+  ["NILSON RODRIGUES TAVARES JÚNIOR","Sd","1990-06-04","1ªSB","SOCORRISTA","722119-3"],
+  ["JOSÉ ISLAN DA SILVA","Sd","1996-05-20","1ªSB","SOCORRISTA","722123-1"],
+  ["ELENILDO FLORÊNCIO FREITAS","Sd","1996-05-20","6ªSB","SOCORRISTA","722125-8"],
+  ["YUSSAFI OSEITON SILVA BARRETO","Sd","1990-05-14","3ªSB","SOCORRISTA","722127-4"],
+  ["ALAN NASCIMENTO BARROS PEREIRA","Sd","1996-07-01","6ªSB","SOCORRISTA","722128-2"],
+  ["JÚLIO TEÓFILO DOS SANTOS NETO","Sd","1993-04-25","3ªSB",null,"722138-0"],
+  ["BRUNO OLIVEIRA SILVA DE MELO","Sd","1993-05-06","7ªSB","MERGULHADOR","722150-9"],
+  ["ARTHUR ALVES FERREIRA DA SILVA","Sd","1993-09-01","4ªSB","SOCORRISTA","722183-5"],
+  ["LYERTON IURY DA SILVA MORAIS","Sd","1995-05-30","5ªSB","SOCORRISTA","722189-4"],
+  ["JOSÉ MATHEUS FERREIRA DA SILVA","Sd","2004-05-23","1ªSB","SOCORRISTA","725001-0"],
+  ["RAYNER CARDOSO DE ARAÚJO","Sd","1995-09-22","3ªSB","SOCORRISTA","725005-3"],
+  ["NATÁLIA TAMIRES DE OLIVEIRA AMORIM","Sd","2005-03-28","2ªSB","SOCORRISTA","725012-6"],
+  ["RAFAEL SEVERINO OLIVEIRA DE MOURA","Sd","2000-09-02","6ªSB","SOCORRISTA","725014-2"],
+  ["DANIEL LEITE ALENCAR BEZERRA","Sd","2005-01-13","5ªSB","SOCORRISTA","725015-0"],
+  ["DANIEL GOMES ADELINO","Sd","2004-07-19","6ªSB","SOCORRISTA","725016-9"],
+  ["MARIA EDUARDA DA SILVA SOUZA","Sd","2001-05-26","1ªSB","SOCORRISTA","725019-3"],
+  ["ARTUR RODRIGUES ALMEIDA","Sd","1997-01-28","6ªSB","SOCORRISTA","725020-7"],
+  ["YURI FERNANDO MOTA DA SILVA","Sd","2002-10-18","4ªSB","SOCORRISTA","725022-3"],
+  ["LUCAS CLEITHON NASCIMENTO CHAVES","Sd","1996-02-28","6ªSB","Combatente","725023-1"],
+  ["IVAN PEDRO LUDGERO TORRES","Sd","1999-10-25","1ªSB","Combatente","725025-8"],
+  ["FRANCISCO DE PAULA RIBEIRO JUNIOR","Sd","2001-02-28","1ªSB","Combatente","725027-4"],
+  ["CLOVISSON FREIRE NOGUEIRA VIDAL","Sd","2004-03-17","5ªSB","Combatente","725028-2"],
+  ["LUAN EUSTÁQUIO LOPES DE FARIAS","Sd","2003-04-26","3ªSB","Combatente","725030-4"],
+  ["GUILHERME ADELINO DE MELO SILVA","Sd","1999-05-26","1ªSB","Combatente","725031-2"],
+  ["CARLOS JOSÉ DE LIMA","Sd","1997-01-31","3ªSB","Combatente","725032-0"],
+  ["CARLOS ANDRÉ PEREIRA GALDINO","Sd","2025-08-18","3ªSB","Combatente","725034-7"],
+  ["ARIAN FERREIRA ALVES PONTES","Sd","1999-02-19","3ªSB","Combatente","725037-1"],
+  ["PEDRO PEIXOTO MAGALHÃES PADILHA","Sd","2004-12-15","3ªSB","Combatente","725038-0"],
+  ["LAYANNE MOTA CINTRA DE ALBUQUERQUE","Sd","1996-10-10","1ªSB","Combatente","725040-1"],
+  ["MARIA ELOISA MATIAS LEAL","Sd","2005-05-25","1ªSB","Combatente","725041-0"],
+  ["IGOR MANOEL DA SILVA","Sd","1997-06-18","5ªSB","Combatente","725044-4"],
+  ["ITALO MATHEUS NUNES SOARES","Sd","1997-02-28","3ªSB","Combatente","725046-0"],
+  ["GABRIEL GOMES MESQUITA PINTO","Sd","2004-11-08","1ªSB","Combatente","725056-8"],
+  ["IRIS MENEZES CAVALCANTI SILVA","Sd","1998-10-16","SCSv","Aux Almox (GRAVIDA)","725073-8"],
+  ["DIEGO ARMANDO DA SILVA","Sd","1993-01-01","1ªSB","Combatente","725099-1"],
+  ["GABRIEL WILLIAN BEZERRA DA SILVA LEMOS","Sd","2006-05-02","1ªSB","Combatente","725105-0"],
+  ["JOSIVALDO THOMAZ DE AQUINO NASCIMENTO","Sd","1998-03-19","SCSv","Aux. STC","725119-0"],
+  ["MELKZEDEC JORDÃO CLAUDINO","Sd","2002-06-25","1ªSB","Combatente","725123-8"],
+  ["FELIPE HENRIQUE LEITE BARROS","Sd","1999-08-26","SCSv","Aux. STC","725129-7"],
+  ["BRENDA FERNANDA CORDEIRO SILVA","Sd","1999-05-27","1ªSB","Combatente","725173-4"],
+  ["MARILIA EDUARDA ALVES DA SILVA","Sd","1993-09-04","1ªSB","Combatente","725180-7"]
+]
+
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function parseData(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return { y, m, d };
+}
+
+function ordinalIdade(idade) {
+  return idade + (idade === 1 ? " ano" : " anos");
+}
+
+const MILITARES = MILITARES_RAW.map(([nome, posto, nascimento, lotacao, funcao, matricula]) => {
+  const { y, m, d } = parseData(nascimento);
+  return { nome, posto, nascimento, lotacao, funcao, matricula, nascY: y, nascM: m, nascD: d };
+});
+
+function diasAteAniversario(nascM, nascD, hoje) {
+  const anoAtual = hoje.getFullYear();
+  let prox = new Date(anoAtual, nascM - 1, nascD);
+  prox.setHours(0, 0, 0, 0);
+  const hojeZero = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  if (prox < hojeZero) {
+    prox = new Date(anoAtual + 1, nascM - 1, nascD);
+  }
+  const diffMs = prox - hojeZero;
+  return Math.round(diffMs / 86400000);
+}
+
+function nomeCaixaMista(nomeCompleto) {
+  return nomeCompleto
+    .split(" ")
+    .map((w) => {
+      const minus = ["da", "de", "do", "das", "dos", "e"];
+      const lw = w.toLowerCase();
+      if (minus.includes(lw)) return lw;
+      return lw.charAt(0).toUpperCase() + lw.slice(1);
+    })
+    .join(" ");
+}
+
+function textoFelicitacao(m, idade) {
+  return `Parabéns, ${m.posto} ${nomeCaixaMista(m.nome)}! 🎉\n\nEm nome do 2º Grupamento de Bombeiros, desejamos a você um feliz aniversário! Que este novo ciclo de ${ordinalIdade(idade)} seja repleto de saúde, conquistas e muito orgulho em servir com a farda que veste.\n\nParabéns, guerreiro(a)! 🚒❤️`;
+}
+
+function textoPostagem(m, idade) {
+  return `🎂 ANIVERSARIANTE DO DIA 🎂\n\n${m.posto} ${nomeCaixaMista(m.nome)}\n${m.lotacao ? `Lotação: ${m.lotacao}` : ""}\n\nO 2º Grupamento de Bombeiros parabeniza o(a) militar pelo seu aniversário! Muita saúde, paz e sucesso!\n\n#CBMPE #2ºGB #BombeirosPE`;
+}
+
+function copiarTexto(text, onDone) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(onDone).catch(() => fallbackCopy(text, onDone));
+  } else {
+    fallbackCopy(text, onDone);
+  }
+}
+function fallbackCopy(text, onDone) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  onDone();
+}
+
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => copiarTexto(text, () => { setCopied(true); setTimeout(() => setCopied(false), 1800); })}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        background: copied ? "#2E7D32" : "#1F3864",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        padding: "6px 12px",
+        fontSize: 13,
+        fontWeight: 600,
+        cursor: "pointer",
+      }}
+    >
+      {copied ? "✓ Copiado!" : "⧉ Copiar texto"}
+    </button>
+  );
+}
+
+function fitText(ctx, text, maxWidth, initialSize, weight = "bold") {
+  let size = initialSize;
+  ctx.font = `${weight} ${size}px Arial`;
+  while (ctx.measureText(text).width > maxWidth && size > 22) {
+    size -= 2;
+    ctx.font = `${weight} ${size}px Arial`;
+  }
+  return size;
+}
+
+function CardOficialGenerator({ m, idade }) {
+  const canvasRef = useRef(null);
+  const [photoSrc, setPhotoSrc] = useState(null);
+  const [pronta, setPronta] = useState(false);
+  const brasaoImgRef = useRef(null);
+
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPronta(false);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhotoSrc(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const W = 1080, H = 1350;
+
+    function desenhar(fotoImg) {
+      // fundo com gradiente radial azul-marinho
+      const grad = ctx.createRadialGradient(W / 2, H * 0.42, 80, W / 2, H * 0.42, 900);
+      grad.addColorStop(0, "#233b6b");
+      grad.addColorStop(1, "#0e1b38");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // moldura dourada dupla
+      ctx.strokeStyle = "#cda43f";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(34, 34, W - 68, H - 68);
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(44, 44, W - 88, H - 88);
+
+      // faixa vermelha (ribbon)
+      const ribbonY = 88, ribbonH = 78, ribbonX1 = 128, ribbonX2 = W - 128;
+      ctx.fillStyle = "#a11c22";
+      // ponta esquerda
+      ctx.beginPath();
+      ctx.moveTo(ribbonX1, ribbonY);
+      ctx.lineTo(ribbonX1 - 42, ribbonY + ribbonH / 2);
+      ctx.lineTo(ribbonX1, ribbonY + ribbonH);
+      ctx.closePath();
+      ctx.fill();
+      // ponta direita
+      ctx.beginPath();
+      ctx.moveTo(ribbonX2, ribbonY);
+      ctx.lineTo(ribbonX2 + 42, ribbonY + ribbonH / 2);
+      ctx.lineTo(ribbonX2, ribbonY + ribbonH);
+      ctx.closePath();
+      ctx.fill();
+      // corpo retangular
+      ctx.fillRect(ribbonX1, ribbonY, ribbonX2 - ribbonX1, ribbonH);
+      // linhas douradas finas
+      ctx.strokeStyle = "#cda43f";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(ribbonX1, ribbonY + 6);
+      ctx.lineTo(ribbonX2, ribbonY + 6);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ribbonX1, ribbonY + ribbonH - 6);
+      ctx.lineTo(ribbonX2, ribbonY + ribbonH - 6);
+      ctx.stroke();
+      // textos da faixa
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.font = "bold 27px Arial";
+      ctx.fillText("CORPO DE BOMBEIROS MILITAR DE PERNAMBUCO", W / 2, ribbonY + 34);
+      ctx.font = "20px Arial";
+      ctx.fillText("2º GRUPAMENTO DE BOMBEIROS", W / 2, ribbonY + 62);
+
+      // moldura circular da foto
+      const cx = W / 2, cy = 560, rOuter = 300, rMat = 286, rPhoto = 268;
+      ctx.beginPath();
+      ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
+      ctx.lineWidth = 7;
+      ctx.strokeStyle = "#cda43f";
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, rMat, 0, Math.PI * 2);
+      ctx.fillStyle = "#16254a";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#cda43f";
+      ctx.stroke();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, rPhoto, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      if (fotoImg) {
+        const ratio = Math.max((rPhoto * 2) / fotoImg.width, (rPhoto * 2) / fotoImg.height);
+        const iw = fotoImg.width * ratio, ih = fotoImg.height * ratio;
+        ctx.drawImage(fotoImg, cx - iw / 2, cy - ih / 2, iw, ih);
+      } else {
+        ctx.fillStyle = "#ece7da";
+        ctx.fillRect(cx - rPhoto, cy - rPhoto, rPhoto * 2, rPhoto * 2);
+        // icone de pessoa
+        ctx.fillStyle = "#a49d85";
+        ctx.beginPath();
+        ctx.arc(cx, cy - 55, 62, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx, cy + 120, 130, Math.PI, 0, false);
+        ctx.fill();
+        ctx.fillStyle = "#7c7560";
+        ctx.font = "bold 24px Arial";
+        ctx.fillText("SUBSTITUA A FOTO", cx, cy + 100);
+      }
+      ctx.restore();
+
+      // divisor
+      const dy = 900;
+      ctx.strokeStyle = "#cda43f";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 170, dy);
+      ctx.lineTo(cx - 40, dy);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + 40, dy);
+      ctx.lineTo(cx + 170, dy);
+      ctx.stroke();
+      ctx.save();
+      ctx.translate(cx, dy);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = "#cda43f";
+      ctx.fillRect(-9, -9, 18, 18);
+      ctx.restore();
+
+      // titulo
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 72px Arial";
+      ctx.fillText("FELIZ ANIVERSÁRIO!", cx, 985);
+
+      // nome
+      const nomeTxt = `${(m.posto || "").toUpperCase()} ${nomeCaixaMista(m.nome).toUpperCase()}`;
+      ctx.fillStyle = "#e2bd63";
+      const nomeSize = fitText(ctx, nomeTxt, W - 140, 44);
+      ctx.font = `bold ${nomeSize}px Arial`;
+      ctx.fillText(nomeTxt, cx, 1042);
+
+      // frase
+      ctx.fillStyle = "#d8dce6";
+      ctx.font = "27px Arial";
+      ctx.fillText("Gratidão por servir com coragem, disciplina e amor à vida.", cx, 1090);
+
+      // lema
+      ctx.fillStyle = "#e2bd63";
+      ctx.font = "bold 33px Arial";
+      ctx.fillText("VIDAS ALHEIAS, RIQUEZAS SALVAR", cx, 1250);
+
+      // brasao
+      const brasao = brasaoImgRef.current;
+      if (brasao) {
+        const bx = W - 195, by = H - 195, bs = 130;
+        ctx.fillStyle = "#f4f1e9";
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(bx, by, bs, bs, 14) : ctx.rect(bx, by, bs, bs);
+        ctx.fill();
+        const pad = 10;
+        ctx.drawImage(brasao, bx + pad, by + pad, bs - pad * 2, bs - pad * 2);
+      }
+
+      setPronta(true);
+    }
+
+    if (!brasaoImgRef.current) {
+      const b = new Image();
+      b.onload = () => {
+        brasaoImgRef.current = b;
+        if (photoSrc) {
+          const img = new Image();
+          img.onload = () => desenhar(img);
+          img.src = photoSrc;
+        } else {
+          desenhar(null);
+        }
+      };
+      b.src = BRASAO_2GB;
+    } else if (photoSrc) {
+      const img = new Image();
+      img.onload = () => desenhar(img);
+      img.src = photoSrc;
+    } else {
+      desenhar(null);
+    }
+  }, [photoSrc, m, idade]);
+
+  function baixar() {
+    const canvas = canvasRef.current;
+    const link = document.createElement("a");
+    const slug = m.nome.split(" ")[0].toLowerCase();
+    link.download = `card_oficial_${slug}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
+  return (
+    <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10, marginTop: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#1F3864", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        Card oficial 2ºGB (modelo institucional)
+      </div>
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <div>
+          <label
+            style={{
+              display: "inline-block",
+              background: "#1F3864",
+              color: "#fff",
+              borderRadius: 6,
+              padding: "8px 12px",
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            📷 Escolher foto do militar
+            <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+          </label>
+          {pronta && (
+            <button
+              onClick={baixar}
+              style={{
+                display: "block",
+                marginTop: 8,
+                background: "#2E7D32",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                padding: "8px 12px",
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              ⬇ Baixar imagem (PNG)
+            </button>
+          )}
+          <div style={{ fontSize: 11.5, color: "#999", marginTop: 8, maxWidth: 190 }}>
+            {photoSrc ? "Pré-visualização abaixo — pode baixar." : "Prévia sem foto abaixo. Escolha uma foto para substituir."}
+          </div>
+        </div>
+        <canvas
+          ref={canvasRef}
+          width={1080}
+          height={1350}
+          style={{
+            width: 160,
+            height: 200,
+            borderRadius: 8,
+            border: "1px solid #ddd",
+            background: "#fff",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ImageCardGenerator({ m, idade }) {
+  const canvasRef = useRef(null);
+  const [photoSrc, setPhotoSrc] = useState(null);
+  const [pronta, setPronta] = useState(false);
+
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPronta(false);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhotoSrc(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  useEffect(() => {
+    if (!photoSrc) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, W, H);
+      // fundo
+      ctx.fillStyle = "#F4F1EA";
+      ctx.fillRect(0, 0, W, H);
+
+      // barra superior
+      ctx.fillStyle = "#1F3864";
+      ctx.fillRect(0, 0, W, 130);
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.font = "bold 30px Arial";
+      ctx.fillText("CBMPE · 2º GRUPAMENTO DE BOMBEIROS", W / 2, 80);
+
+      // título
+      ctx.fillStyle = "#C0621B";
+      const tituloSize = fitText(ctx, "FELIZ ANIVERSÁRIO! 🎉", W - 100, 68);
+      ctx.font = `bold ${tituloSize}px Arial`;
+      ctx.fillText("FELIZ ANIVERSÁRIO! 🎉", W / 2, 250);
+
+      // foto circular
+      const size = 420;
+      const cx = W / 2, cy = 540;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      const ratio = Math.max(size / img.width, size / img.height);
+      const iw = img.width * ratio, ih = img.height * ratio;
+      ctx.drawImage(img, cx - iw / 2, cy - ih / 2, iw, ih);
+      ctx.restore();
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = "#7B241C";
+      ctx.beginPath();
+      ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // nome
+      const nomeTxt = `${m.posto} ${nomeCaixaMista(m.nome)}`;
+      ctx.fillStyle = "#1F3864";
+      const nomeSize = fitText(ctx, nomeTxt, W - 90, 46);
+      ctx.font = `bold ${nomeSize}px Arial`;
+      ctx.fillText(nomeTxt, W / 2, 830);
+
+      // lotação/idade
+      const subTxt = `${m.lotacao ? m.lotacao + " · " : ""}completa ${ordinalIdade(idade)}`;
+      ctx.fillStyle = "#555";
+      ctx.font = "30px Arial";
+      ctx.fillText(subTxt, W / 2, 875);
+
+      // rodapé
+      ctx.fillStyle = "#7B241C";
+      ctx.fillRect(0, H - 85, W, 85);
+      ctx.fillStyle = "#fff";
+      ctx.font = "26px Arial";
+      ctx.fillText("#CBMPE   #2ºGB   #BombeirosPE", W / 2, H - 34);
+
+      setPronta(true);
+    };
+    img.src = photoSrc;
+  }, [photoSrc, m, idade]);
+
+  function baixar() {
+    const canvas = canvasRef.current;
+    const link = document.createElement("a");
+    const slug = m.nome.split(" ")[0].toLowerCase();
+    link.download = `aniversario_${slug}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
+  return (
+    <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10, marginTop: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#1F3864", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        Card genérico (alternativo, sem moldura institucional)
+      </div>
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <div>
+          <label
+            style={{
+              display: "inline-block",
+              background: "#1F3864",
+              color: "#fff",
+              borderRadius: 6,
+              padding: "8px 12px",
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            📷 Escolher foto do militar
+            <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+          </label>
+          {pronta && (
+            <button
+              onClick={baixar}
+              style={{
+                display: "block",
+                marginTop: 8,
+                background: "#2E7D32",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                padding: "8px 12px",
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              ⬇ Baixar imagem (PNG)
+            </button>
+          )}
+          {!photoSrc && (
+            <div style={{ fontSize: 11.5, color: "#999", marginTop: 8, maxWidth: 190 }}>
+              Escolha uma foto para gerar o card pronto para postar no WhatsApp.
+            </div>
+          )}
+        </div>
+        <canvas
+          ref={canvasRef}
+          width={1080}
+          height={1080}
+          style={{
+            width: 170,
+            height: 170,
+            borderRadius: 8,
+            border: "1px solid #ddd",
+            display: photoSrc ? "block" : "none",
+            background: "#fff",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function CardAniversariante({ m, idade, destaque }) {
+  const [aberto, setAberto] = useState(false);
+  return (
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 10,
+        border: `1px solid ${destaque ? "#C0621B" : "#E3E3E3"}`,
+        borderLeft: `5px solid ${destaque ? "#C0621B" : "#7B241C"}`,
+        padding: "14px 16px",
+        marginBottom: 10,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#1F3864" }}>
+            {m.posto} {nomeCaixaMista(m.nome)}
+          </div>
+          <div style={{ fontSize: 13, color: "#666", marginTop: 2 }}>
+            {m.lotacao || "—"} {m.funcao ? `· ${m.funcao}` : ""} · completa {ordinalIdade(idade)}
+          </div>
+        </div>
+        <button
+          onClick={() => setAberto((v) => !v)}
+          style={{
+            background: "transparent",
+            border: "1px solid #ccc",
+            borderRadius: 6,
+            padding: "5px 8px",
+            cursor: "pointer",
+            fontSize: 12,
+            color: "#333",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Gerar textos e imagem {aberto ? "▲" : "▼"}
+        </button>
+      </div>
+      {aberto && (
+        <React.Fragment>
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#7B241C", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                Mensagem de felicitação
+              </div>
+              <div style={{ fontSize: 12.5, whiteSpace: "pre-wrap", color: "#333", marginBottom: 8, lineHeight: 1.4 }}>
+                {textoFelicitacao(m, idade)}
+              </div>
+              <CopyButton text={textoFelicitacao(m, idade)} />
+            </div>
+            <div style={{ background: "#F7F7F5", borderRadius: 8, padding: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#C0621B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                Legenda da postagem padrão
+              </div>
+              <div style={{ fontSize: 12.5, whiteSpace: "pre-wrap", color: "#333", marginBottom: 8, lineHeight: 1.4 }}>
+                {textoPostagem(m, idade)}
+              </div>
+              <CopyButton text={textoPostagem(m, idade)} />
+            </div>
+          </div>
+          <CardOficialGenerator m={m} idade={idade} />
+          <ImageCardGenerator m={m} idade={idade} />
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+function PainelAniversarios() {
+  const [hoje] = useState(() => new Date());
+  const [busca, setBusca] = useState("");
+  const [filtroLotacao, setFiltroLotacao] = useState("Todas");
+  const [filtroMes, setFiltroMes] = useState("Todos");
+
+  const lotacoes = useMemo(() => {
+    const set = new Set(MILITARES.map((m) => m.lotacao).filter(Boolean));
+    return ["Todas", ...Array.from(set).sort()];
+  }, []);
+
+  const comDistancia = useMemo(() => {
+    return MILITARES.map((m) => {
+      const dias = diasAteAniversario(m.nascM, m.nascD, hoje);
+      const anoAtual = hoje.getFullYear();
+      let anoAniversario = anoAtual;
+      const proxData = new Date(anoAtual, m.nascM - 1, m.nascD);
+      const hojeZero = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+      if (proxData < hojeZero) anoAniversario = anoAtual + 1;
+      const idade = anoAniversario - m.nascY;
+      return { ...m, dias, idade };
+    }).sort((a, b) => a.dias - b.dias);
+  }, [hoje]);
+
+  const hojeLista = comDistancia.filter((m) => m.dias === 0);
+  const amanhaLista = comDistancia.filter((m) => m.dias === 1);
+
+  const filtrados = useMemo(() => {
+    return comDistancia.filter((m) => {
+      if (busca && !m.nome.toLowerCase().includes(busca.toLowerCase())) return false;
+      if (filtroLotacao !== "Todas" && m.lotacao !== filtroLotacao) return false;
+      if (filtroMes !== "Todos" && MESES[m.nascM - 1] !== filtroMes) return false;
+      return true;
+    });
+  }, [comDistancia, busca, filtroLotacao, filtroMes]);
+
+  const dataFormatada = hoje.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+
+  return (
+    <div style={{ fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif", background: "#F4F4F2", minHeight: "100vh", color: "#222" }}>
+      <div style={{ background: "linear-gradient(90deg,#1F3864,#2A4D8F)", padding: "18px 24px", color: "#fff" }}>
+        <div style={{ fontSize: 12, letterSpacing: 1.2, opacity: 0.85, textTransform: "uppercase" }}>
+          CBMPE · 2º Grupamento de Bombeiros
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2 }}>
+          🎂 Painel de Aniversários do Efetivo
+        </div>
+        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4, textTransform: "capitalize" }}>{dataFormatada}</div>
+      </div>
+
+      <div style={{ padding: "20px 24px", maxWidth: 980, margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: hojeLista.length && amanhaLista.length ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 24 }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EADFC8", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontWeight: 800, fontSize: 15, color: "#C0621B" }}>🎉 Hoje ({hojeLista.length})</span>
+            </div>
+            {hojeLista.length === 0 && <div style={{ fontSize: 13, color: "#888" }}>Nenhum aniversariante hoje.</div>}
+            {hojeLista.map((m) => (
+              <CardAniversariante key={m.matricula} m={m} idade={m.idade} destaque={true} />
+            ))}
+          </div>
+          {amanhaLista.length > 0 && (
+            <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EEE", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ fontWeight: 800, fontSize: 15, color: "#7B241C" }}>🔔 Amanhã ({amanhaLista.length})</span>
+              </div>
+              {amanhaLista.map((m) => (
+                <CardAniversariante key={m.matricula} m={m} idade={m.idade} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ background: "#fff", borderRadius: 12, padding: 16, border: "1px solid #EEE" }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+            <div style={{ position: "relative", flex: "1 1 220px" }}>
+              <input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="🔍 Buscar militar pelo nome..."
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: 7,
+                  border: "1px solid #ccc",
+                  fontSize: 13,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+            <select
+              value={filtroLotacao}
+              onChange={(e) => setFiltroLotacao(e.target.value)}
+              style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid #ccc", fontSize: 13 }}
+            >
+              {lotacoes.map((l) => (
+                <option key={l} value={l}>{l === "Todas" ? "Todas as lotações" : l}</option>
+              ))}
+            </select>
+            <select
+              value={filtroMes}
+              onChange={(e) => setFiltroMes(e.target.value)}
+              style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid #ccc", fontSize: 13 }}
+            >
+              <option value="Todos">Todos os meses</option>
+              {MESES.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+            {filtrados.length} militar(es) — ordenado por proximidade da data de aniversário
+          </div>
+
+          <div style={{ maxHeight: 520, overflowY: "auto", paddingRight: 4 }}>
+            {filtrados.map((m) => (
+              <div
+                key={m.matricula}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "9px 4px",
+                  borderBottom: "1px solid #F0F0F0",
+                  fontSize: 13.5,
+                }}
+              >
+                <div>
+                  <span style={{ fontWeight: 600, color: "#1F3864" }}>{m.posto}</span>{" "}
+                  <span>{nomeCaixaMista(m.nome)}</span>
+                  <div style={{ fontSize: 11.5, color: "#999" }}>{m.lotacao || "—"}</div>
+                </div>
+                <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                  <div style={{ fontWeight: 700, color: m.dias === 0 ? "#C0621B" : m.dias === 1 ? "#7B241C" : "#444" }}>
+                    {String(m.nascD).padStart(2, "0")}/{String(m.nascM).padStart(2, "0")}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#999" }}>
+                    {m.dias === 0 ? "hoje" : m.dias === 1 ? "amanhã" : `em ${m.dias} dias`}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {filtrados.length === 0 && (
+              <div style={{ padding: 20, textAlign: "center", color: "#999", fontSize: 13 }}>
+                Nenhum militar encontrado com esses filtros.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ fontSize: 11.5, color: "#999", textAlign: "center", marginTop: 18, lineHeight: 1.5 }}>
+          Protótipo gerado a partir da planilha BACKUP DO PECÚLIO 2ºGB (177 militares) · Fase 0 do Plano de Sistema de Gestão de Aniversários
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<PainelAniversarios />);
+</script>
+</body>
+</html>
